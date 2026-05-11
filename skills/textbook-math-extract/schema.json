@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/textbook-math-extract/schema.json",
+  "title": "Textbook Math Problem Metadata",
+  "description": "Metadata extracted from a math textbook problem image for a mobile learning app.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "source",
+    "subject",
+    "unit",
+    "problem_type",
+    "difficulty",
+    "original_text",
+    "question",
+    "givens",
+    "answer_format",
+    "steps",
+    "final_answer",
+    "hints",
+    "ui_components",
+    "confidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["image_file", "page", "problem_number"],
+      "properties": {
+        "image_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "problem_number": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "subject": {
+      "type": ["string", "null"]
+    },
+    "unit": {
+      "type": ["string", "null"]
+    },
+    "problem_type": {
+      "type": "string",
+      "enum": [
+        "calculation",
+        "equation",
+        "inequality",
+        "function",
+        "geometry",
+        "probability",
+        "statistics",
+        "word_problem",
+        "proof",
+        "other"
+      ]
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "standard", "hard", "unknown"]
+    },
+    "original_text": {
+      "type": "string",
+      "description": "Minimal excerpt or compact summary needed for copyright-conscious reconstruction."
+    },
+    "question": {
+      "type": "string",
+      "minLength": 1
+    },
+    "givens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "value", "unit"],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1
+          },
+          "unit": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    },
+    "answer_format": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "latex_template", "choices"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["choice", "fill_blank", "numeric", "formula", "reorder", "graph", "free_text"]
+        },
+        "latex_template": {
+          "type": ["string", "null"]
+        },
+        "choices": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["order", "instruction", "input_type", "expected", "feedback"],
+        "properties": {
+          "order": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "instruction": {
+            "type": "string",
+            "minLength": 1
+          },
+          "input_type": {
+            "type": "string",
+            "enum": ["choice", "fill_blank", "numeric", "formula", "reorder", "graph", "free_text"]
+          },
+          "expected": {
+            "type": ["string", "null"]
+          },
+          "feedback": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    },
+    "final_answer": {
+      "type": ["string", "null"]
+    },
+    "hints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "ui_components": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

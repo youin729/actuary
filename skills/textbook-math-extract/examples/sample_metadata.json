@@ -1,0 +1,54 @@
+{
+  "id": "math_sample_001",
+  "source": {
+    "image_file": "sample_quadratic.png",
+    "page": null,
+    "problem_number": "1"
+  },
+  "subject": "数学I",
+  "unit": "二次方程式",
+  "problem_type": "equation",
+  "difficulty": "standard",
+  "original_text": "二次方程式の解を求める問題。式: \\(x^2 - 5x + 6 = 0\\)",
+  "question": "\\(x^2 - 5x + 6 = 0\\) を解きなさい。",
+  "givens": [
+    {
+      "label": "equation",
+      "value": "x^2 - 5x + 6 = 0",
+      "unit": null
+    }
+  ],
+  "answer_format": {
+    "type": "formula",
+    "latex_template": "x = \\Box, \\Box",
+    "choices": null
+  },
+  "steps": [
+    {
+      "order": 1,
+      "instruction": "左辺を因数分解する。",
+      "input_type": "formula",
+      "expected": "(x - 2)(x - 3) = 0",
+      "feedback": "\\(2\\) と \\(3\\) の積が \\(6\\)、和が \\(5\\) になることを確認する。"
+    },
+    {
+      "order": 2,
+      "instruction": "それぞれの因数が0になる値を入力する。",
+      "input_type": "formula",
+      "expected": "x = 2, 3",
+      "feedback": "\\(x - 2 = 0\\) または \\(x - 3 = 0\\) を解く。"
+    }
+  ],
+  "final_answer": "x = 2, 3",
+  "hints": [
+    "積が定数項、和が一次の係数に対応する2数を探す。",
+    "\\((x-a)(x-b)=0\\) なら \\(x=a\\) または \\(x=b\\)。"
+  ],
+  "ui_components": [
+    "problem_card",
+    "math_keyboard",
+    "step_by_step_solver",
+    "hint_panel"
+  ],
+  "confidence": 0.86
+}
