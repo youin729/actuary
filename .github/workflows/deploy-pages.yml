@@ -25,11 +25,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-        env:
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: out
+          path: docs
 
   deploy:
     environment:

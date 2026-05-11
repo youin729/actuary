@@ -1,0 +1,1033 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>数学・トレーナー</title>
+  <style>:root {
+  color-scheme: light;
+  --teal: #07847e;
+  --teal-dark: #05726e;
+  --aqua: #66d9ca;
+  --bg: #eefdfb;
+  --card: #ffffff;
+  --ink: #101c2a;
+  --muted: #5f6f7b;
+  --line: #cfecea;
+  --wrong: #fdeaea;
+  --shadow: 0 7px 18px rgba(5, 114, 110, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Arial, "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+  letter-spacing: 0;
+}
+
+button {
+  border: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.app-frame {
+  position: relative;
+  width: min(100%, 480px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding-bottom: 128px;
+  overflow: hidden;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: end;
+  height: 80px;
+  padding: 0 24px 21px;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  background: var(--teal);
+  color: #fff;
+}
+
+.app-header h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.hamburger {
+  display: grid;
+  gap: 6px;
+  width: 34px;
+  padding: 0;
+  background: transparent;
+}
+
+.hamburger span {
+  display: block;
+  height: 3px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.screen-content {
+  padding: 24px 16px 18px;
+}
+
+.category-list {
+  display: grid;
+  gap: 18px;
+}
+
+.category-card {
+  display: grid;
+  grid-template-columns: 82px 1fr 34px;
+  align-items: center;
+  width: 100%;
+  min-height: 74px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 14px 22px;
+  text-align: left;
+}
+
+.category-card.featured {
+  background: #bfe9e5;
+}
+
+.category-icon {
+  color: #06111d;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.category-title {
+  display: grid;
+  gap: 4px;
+}
+
+.category-title b {
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.category-title small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.check {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  color: transparent;
+  font-weight: 900;
+}
+
+.check.done {
+  color: var(--ink);
+}
+
+.page-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.page-title-row h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.back-button {
+  background: transparent;
+  color: var(--teal);
+  font-size: 54px;
+  line-height: 0.7;
+}
+
+.minor-section {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.minor-section h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.formula-card {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 144px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 24px 44px 22px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.formula-name {
+  font-size: 20px;
+}
+
+.formula-card strong {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  font-size: clamp(17px, 5vw, 25px);
+  line-height: 1.5;
+}
+
+.formula-card .check {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+}
+
+.practice-view {
+  display: grid;
+  gap: 16px;
+}
+
+.practice-top-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.practice-back-button {
+  min-height: 36px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--teal);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.progress-label {
+  font-size: 22px;
+}
+
+.progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--aqua);
+}
+
+.hint-fill-button {
+  justify-self: end;
+  min-height: 38px;
+  border: 2px solid #55c5bf;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--teal);
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: var(--shadow);
+}
+
+.question-card,
+.answer-reveal-card {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-height: 410px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 38px 14px 28px;
+  overflow: hidden;
+}
+
+.question-card.wrong {
+  background: var(--wrong);
+}
+
+.question-card h2,
+.answer-reveal-card h2 {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.choice-bank {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin: 34px 0 46px;
+}
+
+.token {
+  min-width: 0;
+  min-height: 44px;
+  border-radius: 8px;
+  box-shadow: 4px 7px 9px rgba(10, 72, 72, 0.2);
+  font-size: clamp(17px, 5vw, 22px);
+  font-weight: 800;
+  touch-action: none;
+  user-select: none;
+}
+
+.token.dragging {
+  outline: 3px solid var(--teal);
+  transform: translateY(-3px);
+}
+
+.token.mint {
+  background: #f3ffd7;
+}
+
+.token.peach {
+  background: #f8dfc5;
+}
+
+.token.green {
+  background: #dff7dc;
+}
+
+.token.blue {
+  background: #deedf8;
+}
+
+.token.lime {
+  background: #f2ffd7;
+}
+
+.token.violet {
+  background: #f1daf9;
+}
+
+.token.cream {
+  background: #fbf6e5;
+}
+
+.formula-fill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 72px;
+  flex-wrap: wrap;
+  font-size: clamp(20px, 6vw, 28px);
+  font-weight: 800;
+  overflow: hidden;
+}
+
+.drop-box {
+  display: grid;
+  min-width: 38px;
+  max-width: 82px;
+  height: 44px;
+  place-items: center;
+  border: 3px solid #55c5bf;
+  border-radius: 8px;
+  background: #eefdfb;
+  padding: 0 6px;
+  overflow: hidden;
+  font-size: clamp(16px, 5vw, 22px);
+}
+
+.drop-box.filled {
+  background: #e1f9d9;
+}
+
+.blank-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.formula-static {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.latex-fragment {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 0.78em;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.dot-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.dot-row i {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 4px solid #55c5bf;
+  border-radius: 50%;
+}
+
+.dot-row i {
+  width: 14px;
+  height: 14px;
+  border-width: 3px;
+}
+
+.dot-row i.active {
+  background: #55c5bf;
+}
+
+.retry-icon {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  background: transparent;
+  color: #55c5bf;
+  font-size: 32px;
+}
+
+.practice-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+}
+
+.next-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.large-button {
+  min-height: 58px;
+  border-radius: 16px;
+  background: var(--teal);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.next-row .large-button {
+  width: 46%;
+}
+
+.answer-reveal-card {
+  display: grid;
+  align-content: center;
+  gap: 16px;
+  min-height: 330px;
+  margin-top: 80px;
+  text-align: center;
+}
+
+.submitted-answer {
+  display: grid;
+  gap: 10px;
+  border-radius: 10px;
+  background: #eefdfb;
+  padding: 12px;
+}
+
+.submitted-answer span,
+.answer-label {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.submitted-token-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.submitted-token-row b {
+  display: grid;
+  min-width: 28px;
+  min-height: 30px;
+  place-items: center;
+  border-radius: 6px;
+  background: #e1f9d9;
+  padding: 4px 7px;
+  font-size: 16px;
+}
+
+.answer-reveal-card strong {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  font-size: clamp(20px, 6vw, 30px);
+  line-height: 1.7;
+}
+
+.stats-view {
+  display: grid;
+  gap: 18px;
+}
+
+.stats-summary,
+.major-stats-card,
+.formula-progress-list {
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.stats-summary {
+  display: grid;
+  gap: 18px;
+  padding: 28px 26px;
+}
+
+.ring {
+  display: grid;
+  width: 150px;
+  height: 150px;
+  place-items: center;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+}
+
+.ring::before {
+  content: "";
+  position: absolute;
+}
+
+.ring span {
+  display: grid;
+  width: 112px;
+  height: 112px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.stats-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 19px;
+}
+
+.stats-line b {
+  color: var(--teal);
+}
+
+.major-stats-card {
+  padding: 18px 20px;
+}
+
+.major-stats-head {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+
+.major-stats-head strong {
+  color: var(--teal);
+}
+
+.mini-track {
+  height: 22px;
+  border-radius: 999px;
+  background: #e5f5f4;
+  overflow: hidden;
+  text-align: center;
+}
+
+.mini-track span {
+  display: block;
+  min-width: 34px;
+  height: 100%;
+  border-radius: inherit;
+  background: #bdeee8;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.formula-progress-list {
+  max-height: 420px;
+  overflow: hidden;
+  padding: 14px 16px;
+}
+
+.formula-progress-list button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  width: 100%;
+  min-height: 58px;
+  border-bottom: 2px solid #67ddd1;
+  background: transparent;
+  text-align: left;
+  font-size: 20px;
+  overflow: hidden;
+}
+
+.formula-progress-list button:last-child {
+  border-bottom: 0;
+}
+
+.bottom-nav {
+  position: fixed;
+  right: 50%;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: min(100%, 480px);
+  height: 76px;
+  transform: translateX(50%);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  background: var(--teal);
+  color: #b9e9e4;
+}
+
+.bottom-nav button {
+  display: grid;
+  gap: 4px;
+  place-items: center;
+  min-height: 72px;
+  background: transparent;
+  color: inherit;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.bottom-nav button.active {
+  color: #fff;
+}
+
+.grid-icon,
+.bars-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.math {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+
+.math mjx-container {
+  max-width: 100% !important;
+  overflow: hidden;
+}
+
+.math mjx-container svg {
+  max-width: 100% !important;
+  height: auto;
+}
+
+@media (max-width: 390px) {
+  .choice-bank {
+    gap: 8px;
+  }
+
+  .token {
+    min-height: 46px;
+    font-size: 18px;
+  }
+
+  .practice-actions {
+    gap: 24px;
+  }
+}
+</style>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="app-frame">
+      <header class="app-header">
+        <button type="button" class="hamburger" aria-label="menu"><span></span><span></span><span></span></button>
+        <h1>数学・トレーナー</h1>
+      </header>
+      <div id="app" class="screen-content"></div>
+      <nav class="bottom-nav">
+        <button type="button" id="nav-index" class="active"><span class="grid-icon">▦</span>数式</button>
+        <button type="button" id="nav-stats"><span class="bars-icon">▥</span>統計</button>
+      </nav>
+    </section>
+  </main>
+  <script id="formula-data" type="application/json">{"formulas":[{"id":"1001","majorCategory":"確率論","minorCategory":"基本確率","name":"加法定理","latex":"P(A \\cup B) = P(A) + P(B) - P(A \\cap B)","importance":5},{"id":"1002","majorCategory":"確率論","minorCategory":"基本確率","name":"乗法定理","latex":"P(A \\cap B) = P(A)P(B|A)","importance":5},{"id":"1003","majorCategory":"確率論","minorCategory":"基本確率","name":"独立","latex":"P(A \\cap B) = P(A)P(B)","importance":5},{"id":"1004","majorCategory":"確率論","minorCategory":"条件付き確率","name":"条件付き確率の定義","latex":"P(A|B) = \\frac{P(A \\cap B)}{P(B)}","importance":5},{"id":"1005","majorCategory":"確率論","minorCategory":"条件付き確率","name":"ベイズの定理","latex":"P(A|B) = \\frac{P(B|A)P(A)}{P(B)}","importance":5},{"id":"1006","majorCategory":"確率論","minorCategory":"条件付き確率","name":"全確率の法則","latex":"P(A) = \\sum_i P(A|B_i)P(B_i)","importance":5},{"id":"1007","majorCategory":"確率論","minorCategory":"確率変数","name":"期待値（離散）","latex":"E[X] = \\sum xP(X=x)","importance":5},{"id":"1008","majorCategory":"確率論","minorCategory":"確率変数","name":"期待値（連続）","latex":"E[X] = \\int x f(x)dx","importance":5},{"id":"1009","majorCategory":"確率論","minorCategory":"確率変数","name":"分散","latex":"Var(X) = E[X^2] - (E[X])^2","importance":5},{"id":"1010","majorCategory":"確率論","minorCategory":"確率変数","name":"線形性","latex":"E[aX + bY] = aE[X] + bE[Y]","importance":5},{"id":"1011","majorCategory":"確率論","minorCategory":"共分散・相関","name":"共分散","latex":"Cov(X,Y) = E[XY] - E[X]E[Y]","importance":4},{"id":"1012","majorCategory":"確率論","minorCategory":"共分散・相関","name":"相関係数","latex":"\\rho = \\frac{Cov(X,Y)}{\\sqrt{Var(X)Var(Y)}}","importance":3},{"id":"1013","majorCategory":"確率論","minorCategory":"不等式","name":"マルコフ不等式","latex":"P(X \\ge a) \\le \\frac{E[X]}{a}","importance":3},{"id":"1014","majorCategory":"確率論","minorCategory":"不等式","name":"チェビシェフ不等式","latex":"P(|X-\\mu| \\ge k\\sigma) \\le \\frac{1}{k^2}","importance":4},{"id":"1015","majorCategory":"確率論","minorCategory":"極限定理","name":"中心極限定理","latex":"\\frac{X_1 + \\cdots + X_n - n\\mu}{\\sqrt{n\\sigma^2}} \\to N(0,1)","importance":5},{"id":"1016","majorCategory":"確率論","minorCategory":"極限定理","name":"大数の法則","latex":"\\frac{1}{n}\\sum_{i=1}^n X_i \\to \\mu","importance":4},{"id":"2001","majorCategory":"分布論","minorCategory":"離散分布","name":"二項分布","latex":"P(X=k) = {n \\choose k} p^k (1-p)^{n-k}","importance":5},{"id":"2002","majorCategory":"分布論","minorCategory":"離散分布","name":"ポアソン分布","latex":"P(X=k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}","importance":5},{"id":"2003","majorCategory":"分布論","minorCategory":"連続分布","name":"正規分布","latex":"X \\sim N(\\mu, \\sigma^2)","importance":5},{"id":"2004","majorCategory":"分布論","minorCategory":"連続分布","name":"指数分布","latex":"f(x) = \\lambda e^{-\\lambda x}","importance":4},{"id":"2005","majorCategory":"分布論","minorCategory":"連続分布","name":"指数分布の無記憶性","latex":"P(X>s+t | X>s) = P(X>t)","importance":5},{"id":"3001","majorCategory":"統計","minorCategory":"推定","name":"標本平均","latex":"\\bar{X} = \\frac{1}{n} \\sum X_i","importance":5},{"id":"3002","majorCategory":"統計","minorCategory":"推定","name":"不偏分散","latex":"S^2 = \\frac{1}{n-1} \\sum (X_i - \\bar{X})^2","importance":5},{"id":"3003","majorCategory":"統計","minorCategory":"推定","name":"最尤推定","latex":"\\hat{\\theta} = \\arg\\max L(\\theta)","importance":5},{"id":"3004","majorCategory":"統計","minorCategory":"検定","name":"Z検定","latex":"\\frac{\\bar{X} - \\mu}{\\sigma/\\sqrt{n}}","importance":4},{"id":"3005","majorCategory":"統計","minorCategory":"検定","name":"t検定","latex":"\\frac{\\bar{X} - \\mu}{S/\\sqrt{n}}","importance":4},{"id":"3006","majorCategory":"統計","minorCategory":"検定","name":"カイ二乗統計量","latex":"\\sum \\frac{(O-E)^2}{E}","importance":3},{"id":"3007","majorCategory":"統計","minorCategory":"区間推定","name":"信頼区間（正規）","latex":"\\bar{X} \\pm z_{\\alpha/2}\\frac{\\sigma}{\\sqrt{n}}","importance":5},{"id":"4001","majorCategory":"線形代数","minorCategory":"行列","name":"逆行列","latex":"A^{-1}A = I","importance":3},{"id":"4002","majorCategory":"線形代数","minorCategory":"固有値","name":"固有値方程式","latex":"Ax = \\lambda x","importance":3},{"id":"5001","majorCategory":"微積分","minorCategory":"微分","name":"微分の定義","latex":"\\frac{d}{dx}f(x)","importance":3},{"id":"5002","majorCategory":"微積分","minorCategory":"積分","name":"定積分","latex":"\\int_a^b f(x)dx","importance":3},{"id":"5003","majorCategory":"微積分","minorCategory":"多変数","name":"偏微分","latex":"\\frac{\\partial f}{\\partial x}","importance":2},{"id":"5004","majorCategory":"微積分","minorCategory":"変数変換","name":"ヤコビアン","latex":"\\left| \\frac{\\partial(x,y)}{\\partial(u,v)} \\right|","importance":4},{"id":"6001","majorCategory":"確率過程","minorCategory":"マルコフ連鎖","name":"遷移確率","latex":"P(X_{n+1}=j | X_n=i) = p_{ij}","importance":4},{"id":"6002","majorCategory":"確率過程","minorCategory":"マルコフ連鎖","name":"定常分布","latex":"\\pi = \\pi P","importance":4},{"id":"7001","majorCategory":"保険数理","minorCategory":"利息","name":"現在価値","latex":"PV = \\frac{1}{(1+i)^t}","importance":5},{"id":"7002","majorCategory":"保険数理","minorCategory":"年金","name":"年金現価","latex":"a_{\\overline{n}|} = \\sum_{t=1}^n \\frac{1}{(1+i)^t}","importance":5},{"id":"7003","majorCategory":"保険数理","minorCategory":"生命表","name":"生存確率","latex":"{}_tp_x","importance":5},{"id":"7004","majorCategory":"保険数理","minorCategory":"生命表","name":"死亡確率","latex":"q_x","importance":5},{"id":"8001","majorCategory":"応用確率","minorCategory":"期待値","name":"条件付き期待値の法則","latex":"E[X] = E[E[X|Y]]","importance":5},{"id":"8002","majorCategory":"応用確率","minorCategory":"分散","name":"分散の分解","latex":"Var(X) = E[Var(X|Y)] + Var(E[X|Y])","importance":5}]}</script>
+  <script>
+(() => {
+  const formulas = JSON.parse(document.getElementById("formula-data").textContent).formulas;
+  const statsKey = "math-trainer-formula-stats";
+  const pastelClasses = ["mint", "peach", "green", "blue", "lime", "violet", "cream"];
+  const categoryIcons = { "確率論": "P(A)", "分布論": "N(μ)", "統計": "x̄", "線形代数": "Ax", "微積分": "∫dx", "確率過程": "Pᵢⱼ", "保険数理": "PV", "応用確率": "E[X]" };
+  const app = document.getElementById("app");
+  const navIndex = document.getElementById("nav-index");
+  const navStats = document.getElementById("nav-stats");
+  let view = "index";
+  let selectedMajor = null;
+  let selectedMinor = null;
+  let currentFormula = formulas[0];
+  let practiceState = "question";
+  let question = null;
+  let placedChoices = [];
+  let draggingChoice = null;
+
+  function groupBy(items, getter) {
+    return items.reduce((groups, item) => {
+      const key = getter(item);
+      groups[key] = groups[key] || [];
+      groups[key].push(item);
+      return groups;
+    }, {});
+  }
+
+  function loadStats() {
+    try {
+      const raw = sessionStorage.getItem(statsKey);
+      if (!raw) return { attempts: 0, correct: 0, rememberedIds: [], history: [] };
+      const parsed = JSON.parse(raw);
+      return {
+        attempts: parsed.attempts || 0,
+        correct: parsed.correct || 0,
+        rememberedIds: Array.isArray(parsed.rememberedIds) ? parsed.rememberedIds : [],
+        history: Array.isArray(parsed.history) ? parsed.history : []
+      };
+    } catch {
+      return { attempts: 0, correct: 0, rememberedIds: [], history: [] };
+    }
+  }
+
+  function saveStats(stats) {
+    sessionStorage.setItem(statsKey, JSON.stringify(stats));
+  }
+
+  function mathText(latex) {
+    return "\\(" + latex + "\\)";
+  }
+
+  function typeset() {
+    if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise();
+  }
+
+  function findMainEqualsIndex(latex) {
+    let braceDepth = 0;
+    let parenDepth = 0;
+    for (let index = 0; index < latex.length; index += 1) {
+      const char = latex[index];
+      if (char === "{") braceDepth += 1;
+      if (char === "}") braceDepth = Math.max(0, braceDepth - 1);
+      if (char === "(") parenDepth += 1;
+      if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
+      if (char === "=" && braceDepth === 0 && parenDepth === 0) return index;
+    }
+    return -1;
+  }
+
+  function readBraceContent(source, openIndex) {
+    let depth = 0;
+    for (let index = openIndex; index < source.length; index += 1) {
+      const char = source[index];
+      if (char === "{") depth += 1;
+      if (char === "}") depth -= 1;
+      if (depth === 0) return { content: source.slice(openIndex + 1, index), end: index + 1 };
+    }
+    return { content: source.slice(openIndex + 1), end: source.length };
+  }
+
+  function mergeScriptTokens(tokens) {
+    const merged = [];
+    for (let index = 0; index < tokens.length; index += 1) {
+      const token = tokens[index];
+      if ((token === "_" || token === "^") && merged.length > 0 && tokens[index + 1]) {
+        const base = merged.pop();
+        merged.push(base + token + tokens[index + 1]);
+        index += 1;
+      } else {
+        merged.push(token);
+      }
+    }
+    return merged;
+  }
+
+  function latexToAnswerTokens(latex) {
+    const commandMap = { cap: "∩", cup: "∪", le: "≤", ge: "≥", to: "→", pm: "±", sum: "Σ", int: "∫", cdots: "…", lambda: "λ", mu: "μ", sigma: "σ", theta: "θ", pi: "π", rho: "ρ", alpha: "α", beta: "β", partial: "∂" };
+    const tokens = [];
+    for (let index = 0; index < latex.length; index += 1) {
+      const char = latex[index];
+      if (/\s/.test(char) || char === "}") continue;
+      if (char === "{") {
+        const content = readBraceContent(latex, index);
+        tokens.push(content.content);
+        index = content.end - 1;
+        continue;
+      }
+      if (char === "\\") {
+        const match = latex.slice(index + 1).match(/^[A-Za-z]+/);
+        const command = match?.[0] || "";
+        if (command === "frac") {
+          let cursor = index + 1 + command.length;
+          if (latex[cursor] === "{") {
+            const numerator = readBraceContent(latex, cursor);
+            cursor = numerator.end;
+            if (latex[cursor] === "{") {
+              const denominator = readBraceContent(latex, cursor);
+              tokens.push(...latexToAnswerTokens(numerator.content), "/", ...latexToAnswerTokens(denominator.content));
+              index = denominator.end - 1;
+              continue;
+            }
+          }
+        }
+        if (command === "sqrt" || command === "bar" || command === "overline") {
+          const cursor = index + 1 + command.length;
+          if (latex[cursor] === "{") {
+            const content = readBraceContent(latex, cursor);
+            if (command === "sqrt") tokens.push("√", "(");
+            tokens.push(...latexToAnswerTokens(content.content));
+            if (command === "sqrt") tokens.push(")");
+            index = content.end - 1;
+            continue;
+          }
+        }
+        tokens.push(commandMap[command] || command || char);
+        index += command.length;
+        continue;
+      }
+      tokens.push(char);
+    }
+    return mergeScriptTokens(tokens.filter(Boolean));
+  }
+
+  function makeQuestion(formula) {
+    const equalIndex = findMainEqualsIndex(formula.latex);
+    const leftPrefix = equalIndex >= 0 ? formula.latex.slice(0, equalIndex + 1) : "";
+    const rhs = equalIndex >= 0 ? formula.latex.slice(equalIndex + 1) : formula.latex;
+    const targets = latexToAnswerTokens(rhs);
+    const distractors = formulas.flatMap((item) => latexToAnswerTokens(item.latex))
+      .filter((token) => !targets.includes(token) && token.length <= 8)
+      .filter((token, index, array) => array.indexOf(token) === index)
+      .slice(0, 10);
+    const choices = [...targets, ...distractors].filter((choice, index, array) => array.indexOf(choice) === index).slice(0, 18);
+    const shuffled = choices.map((choice, index) => ({ choice, sort: (choice.charCodeAt(0) * 17 + index * 31) % 97 }))
+      .sort((a, b) => a.sort - b.sort).map((item) => item.choice);
+    return { targets, choices: shuffled, leftPrefix };
+  }
+
+  function setActiveNav() {
+    navIndex.classList.toggle("active", view === "index" || view === "list");
+    navStats.classList.toggle("active", view === "stats");
+  }
+
+  function render() {
+    setActiveNav();
+    if (view === "index") renderIndex();
+    if (view === "list") renderList();
+    if (view === "practice") renderPractice();
+    if (view === "stats") renderStats();
+    typeset();
+  }
+
+  function rememberedSet() {
+    return new Set(loadStats().rememberedIds);
+  }
+
+  function renderIndex() {
+    const majorGroups = groupBy(formulas, (formula) => formula.majorCategory);
+    const rows = Object.entries(majorGroups).flatMap(([major, majorFormulas]) =>
+      Object.entries(groupBy(majorFormulas, (formula) => formula.minorCategory)).map(([minor, rowFormulas]) => ({ major, minor, formulas: rowFormulas }))
+    );
+    const remembered = rememberedSet();
+    app.innerHTML = '<div class="category-list">' + rows.map((row, index) => {
+      const done = row.formulas.filter((formula) => remembered.has(formula.id)).length === row.formulas.length;
+      return '<button type="button" class="' + (index === 0 ? 'category-card featured' : 'category-card') + '" data-major="' + row.major + '" data-minor="' + row.minor + '">' +
+        '<span class="category-icon">' + (categoryIcons[row.major] || 'f(x)') + '</span>' +
+        '<span class="category-title"><b>' + row.major + '</b><small>' + row.minor + '</small></span>' +
+        '<span class="' + (done ? 'check done' : 'check') + '">✓</span></button>';
+    }).join("") + "</div>";
+    app.querySelectorAll(".category-card").forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedMajor = button.dataset.major;
+        selectedMinor = button.dataset.minor;
+        view = "list";
+        render();
+      });
+    });
+  }
+
+  function renderList() {
+    const visible = formulas.filter((formula) => (!selectedMajor || formula.majorCategory === selectedMajor) && (!selectedMinor || formula.minorCategory === selectedMinor));
+    const groups = groupBy(visible, (formula) => formula.minorCategory);
+    const remembered = rememberedSet();
+    app.innerHTML = '<div class="list-view"><div class="page-title-row"><h2>' + (selectedMinor || selectedMajor || "公式一覧") + '</h2><button type="button" class="back-button" id="back-index">‹</button></div>' +
+      Object.entries(groups).map(([minor, items]) => '<section class="minor-section"><h3>' + minor + '</h3>' + items.map((formula) =>
+        '<button type="button" class="formula-card" data-id="' + formula.id + '"><span class="formula-name">' + formula.name + '</span><strong class="math">' + mathText(formula.latex) + '</strong><span class="' + (remembered.has(formula.id) ? 'check done' : 'check') + '">✓</span></button>'
+      ).join("") + '</section>').join("") + '</div>';
+    document.getElementById("back-index").addEventListener("click", () => { view = "index"; render(); });
+    app.querySelectorAll(".formula-card").forEach((button) => {
+      button.addEventListener("click", () => startPractice(formulas.find((formula) => formula.id === button.dataset.id)));
+    });
+  }
+
+  function startPractice(formula) {
+    currentFormula = formula || currentFormula || formulas[0];
+    question = makeQuestion(currentFormula);
+    placedChoices = [];
+    practiceState = "question";
+    view = "practice";
+    render();
+  }
+
+  function placeChoice(choice) {
+    const next = Array.from({ length: question.targets.length }, (_, index) => placedChoices[index] || "");
+    const emptyIndex = next.findIndex((value) => !value);
+    if (emptyIndex >= 0) next[emptyIndex] = choice;
+    else next.push(choice);
+    placedChoices = next.slice(0, question.targets.length);
+    render();
+  }
+
+  function revealHint() {
+    const next = Array.from({ length: question.targets.length }, (_, index) => placedChoices[index] || "");
+    const blanks = next.map((value, index) => value ? -1 : index).filter((index) => index >= 0);
+    blanks.slice(0, Math.max(1, Math.ceil(question.targets.length * 0.3))).forEach((index) => { next[index] = question.targets[index]; });
+    placedChoices = next;
+    render();
+  }
+
+  function submitAnswer() {
+    const correct = question.targets.length === placedChoices.length && question.targets.every((target, index) => placedChoices[index] === target);
+    const stats = loadStats();
+    const rememberedIds = correct ? Array.from(new Set([...stats.rememberedIds, currentFormula.id])) : stats.rememberedIds;
+    saveStats({ attempts: stats.attempts + 1, correct: stats.correct + (correct ? 1 : 0), rememberedIds, history: [{ id: currentFormula.id, correct, answeredAt: new Date().toISOString() }, ...stats.history].slice(0, 50) });
+    practiceState = correct ? "answer" : "error";
+    render();
+  }
+
+  function nextFormula() {
+    const index = formulas.findIndex((formula) => formula.id === currentFormula.id);
+    startPractice(formulas[(index + 1) % formulas.length]);
+  }
+
+  function renderPractice() {
+    if (!question) question = makeQuestion(currentFormula);
+    const stats = loadStats();
+    const complete = stats.rememberedIds.length;
+    const progress = formulas.length ? (complete / formulas.length) * 100 : 0;
+    if (practiceState === "answer") {
+      app.innerHTML = '<div class="practice-view"><div class="practice-top-row"><button type="button" class="practice-back-button" id="back-list">‹ 公式一覧</button></div><div class="progress-label">完了: ' + complete + '/' + formulas.length + '</div><div class="progress-track"><span style="width:' + progress + '%"></span></div><section class="answer-reveal-card"><h2>' + currentFormula.name + '</h2><div class="submitted-answer"><span>あなたの解答</span><div class="submitted-token-row">' + placedChoices.map((choice, index) => '<b class="math" key="' + index + '">' + mathText(choice) + '</b>').join("") + '</div></div><span class="answer-label">正しい公式</span><strong class="math">' + mathText(currentFormula.latex) + '</strong></section><div class="next-row"><button type="button" class="large-button" id="next-formula">次へ</button></div></div>';
+      document.getElementById("back-list").addEventListener("click", backToList);
+      document.getElementById("next-formula").addEventListener("click", nextFormula);
+      return;
+    }
+    app.innerHTML = '<div class="practice-view"><div class="practice-top-row"><button type="button" class="practice-back-button" id="back-list">‹ 公式一覧</button></div><div class="progress-label">完了: ' + complete + '/' + formulas.length + '</div><div class="progress-track"><span style="width:' + progress + '%"></span></div>' +
+      (practiceState === "question" ? '<button type="button" class="hint-fill-button" id="hint-button">ヒント: 30%表示</button>' : '') +
+      '<section class="' + (practiceState === "error" ? 'question-card wrong' : 'question-card') + '">' +
+      (practiceState === "error" ? '<button type="button" class="retry-icon" id="clear-answer">↻</button>' : '') +
+      '<h2>' + currentFormula.name + '</h2><div class="choice-bank">' + question.choices.map((choice, index) => '<button type="button" class="token ' + pastelClasses[index % pastelClasses.length] + '" data-choice="' + choice + '"><span class="math">' + mathText(choice) + '</span></button>').join("") + '</div>' +
+      '<div class="formula-fill"><span class="math formula-static">' + mathText(question.leftPrefix) + '</span>' + question.targets.map((target, index) => '<button type="button" class="' + (placedChoices[index] ? 'drop-box filled' : 'drop-box') + '" data-clear="' + index + '">' + (placedChoices[index] ? '<span class="math">' + mathText(placedChoices[index]) + '</span>' : '') + '</button>').join("") + '</div></section>' +
+      (practiceState === "question" ? '<div class="practice-actions"><button type="button" class="large-button" id="skip-button">スキップ</button><button type="button" class="large-button" id="submit-button">答える</button></div>' : '<div class="next-row"><button type="button" class="large-button" id="next-formula">次へ</button></div>') + '</div>';
+    document.getElementById("back-list").addEventListener("click", backToList);
+    document.querySelectorAll(".token").forEach((button) => button.addEventListener("click", () => placeChoice(button.dataset.choice)));
+    document.querySelectorAll(".drop-box").forEach((button) => button.addEventListener("click", () => { placedChoices[Number(button.dataset.clear)] = ""; render(); }));
+    document.getElementById("hint-button")?.addEventListener("click", revealHint);
+    document.getElementById("clear-answer")?.addEventListener("click", () => { placedChoices = []; practiceState = "question"; render(); });
+    document.getElementById("skip-button")?.addEventListener("click", nextFormula);
+    document.getElementById("submit-button")?.addEventListener("click", submitAnswer);
+    document.getElementById("next-formula")?.addEventListener("click", nextFormula);
+  }
+
+  function backToList() {
+    selectedMajor = currentFormula.majorCategory;
+    selectedMinor = currentFormula.minorCategory;
+    view = "list";
+    render();
+  }
+
+  function renderStats() {
+    const stats = loadStats();
+    const remembered = new Set(stats.rememberedIds);
+    const completeRate = formulas.length ? Math.round((remembered.size / formulas.length) * 100) : 0;
+    const correctRate = stats.attempts ? Math.round((stats.correct / stats.attempts) * 100) : 0;
+    const byMajor = groupBy(formulas, (formula) => formula.majorCategory);
+    app.innerHTML = '<div class="stats-view"><section class="stats-summary"><div class="ring" style="background:conic-gradient(#0a817a ' + (completeRate * 3.6) + 'deg, #e8f7f5 0deg)"><span>' + completeRate + '%</span></div><div class="stats-line"><span>暗記した数式</span><b>' + remembered.size + '/' + formulas.length + '</b></div><div class="stats-line"><span>回答総数</span><b>' + stats.attempts + '</b></div><div class="stats-line"><span>正解総数</span><b>' + stats.correct + '</b></div><div class="stats-line"><span>正解率</span><b>' + correctRate + '%</b></div></section>' +
+      Object.entries(byMajor).map(([major, items]) => { const done = items.filter((formula) => remembered.has(formula.id)).length; const percent = items.length ? Math.round((done / items.length) * 100) : 0; return '<section class="major-stats-card"><div class="major-stats-head"><span class="category-icon">' + (categoryIcons[major] || 'f(x)') + '</span><b>' + major + '</b><strong>' + done + '/' + items.length + '</strong></div><div class="mini-track"><span style="width:' + percent + '%">' + percent + '%</span></div></section>'; }).join("") +
+      '<section class="formula-progress-list">' + formulas.slice(0, 12).map((formula) => '<button type="button" data-id="' + formula.id + '"><span class="math">' + mathText(formula.latex) + '</span><span class="dot-row"><i class="' + (remembered.has(formula.id) ? 'active' : '') + '"></i><i></i><i></i></span></button>').join("") + '</section></div>';
+    app.querySelectorAll(".formula-progress-list button").forEach((button) => button.addEventListener("click", () => startPractice(formulas.find((formula) => formula.id === button.dataset.id))));
+  }
+
+  navIndex.addEventListener("click", () => { view = "index"; render(); });
+  navStats.addEventListener("click", () => { view = "stats"; render(); });
+  render();
+})();
+  </script>
+</body>
+</html>

@@ -101,7 +101,7 @@ python3 skills/textbook-math-extract/scripts/validate_json.py output/problem.jso
 
 ## スマートフォン向けUI
 
-Next.js の静的エクスポートで、GitHub Pages に配置できる演習UIを用意しています。`output/**/*.json` を `public/problems` に同期し、ブラウザ上で問題選択、数式表示、解答入力、ヒント表示、ステップ確認ができます。
+GitHub Pages に配置できる演習UIを用意しています。通常の公開には、CSS・JavaScript・公式データを1ファイルに埋め込んだ `docs/index.html` を使います。
 
 ```bash
 npm install
@@ -114,4 +114,10 @@ npm run dev
 npm run build
 ```
 
-生成物は `out/` に出力されます。GitHub Pages へは `.github/workflows/deploy-pages.yml` で自動デプロイできます。リポジトリを `https://ユーザー名.github.io/リポジトリ名/` で公開する想定で、Actions では `NEXT_PUBLIC_BASE_PATH=/<repo>` を設定しています。ユーザーサイト直下で公開する場合は、この環境変数を空にしてください。
+生成物は `docs/index.html` に出力されます。このHTMLは `file://` で直接開いてもCSSと一覧画面が表示されます。GitHub Pages へは `.github/workflows/deploy-pages.yml` で `docs/` を自動デプロイします。
+
+Next.js の静的エクスポートを確認したい場合だけ、次を使います。
+
+```bash
+npm run build:next
+```
