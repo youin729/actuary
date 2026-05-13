@@ -3,337 +3,559 @@
     {
       "id": "1001",
       "majorCategory": "確率論",
-      "minorCategory": "基本確率",
-      "name": "加法定理",
-      "latex": "P(A \\cup B) = P(A) + P(B) - P(A \\cap B)",
+      "minorCategory": "基本概念",
+      "name": "確率（事象Aの起こる確率）",
+      "latex": "P(A)",
+      "description": "事象Aが起こる割合を表す最も基本的な概念。全事象に対する有利な場合の比として定義される。",
       "importance": 5
     },
     {
       "id": "1002",
       "majorCategory": "確率論",
-      "minorCategory": "基本確率",
-      "name": "乗法定理",
-      "latex": "P(A \\cap B) = P(A)P(B|A)",
+      "minorCategory": "基本概念",
+      "name": "確率質量関数（離散）",
+      "latex": "P(X=x)",
+      "description": "離散確率変数が特定の値xをとる確率を示す関数。分布表や期待値計算の基礎となる。",
       "importance": 5
     },
     {
       "id": "1003",
       "majorCategory": "確率論",
-      "minorCategory": "基本確率",
-      "name": "独立",
-      "latex": "P(A \\cap B) = P(A)P(B)",
+      "minorCategory": "基本概念",
+      "name": "確率密度関数（連続）",
+      "latex": "f(x)",
+      "description": "連続確率変数の分布の形を表す関数。区間確率は積分で求め、面積全体が1となる。",
       "importance": 5
     },
     {
       "id": "1004",
       "majorCategory": "確率論",
-      "minorCategory": "条件付き確率",
-      "name": "条件付き確率の定義",
-      "latex": "P(A|B) = \\frac{P(A \\cap B)}{P(B)}",
+      "minorCategory": "基本概念",
+      "name": "累積分布関数",
+      "latex": "F(x)=P(X \\le x)",
+      "description": "確率変数がx以下になる累積確率を表す。分布の全体像把握や中央値計算などに利用する。",
       "importance": 5
     },
     {
       "id": "1005",
       "majorCategory": "確率論",
-      "minorCategory": "条件付き確率",
-      "name": "ベイズの定理",
-      "latex": "P(A|B) = \\frac{P(B|A)P(A)}{P(B)}",
+      "minorCategory": "基本概念",
+      "name": "期待値",
+      "latex": "E[X]",
+      "description": "確率変数の平均的な値を表す指標。長期的な平均結果や保険料率計算に重要。",
       "importance": 5
     },
     {
       "id": "1006",
       "majorCategory": "確率論",
-      "minorCategory": "条件付き確率",
-      "name": "全確率の法則",
-      "latex": "P(A) = \\sum_i P(A|B_i)P(B_i)",
+      "minorCategory": "基本概念",
+      "name": "分散",
+      "latex": "Var(X)",
+      "description": "平均からどれだけ散らばるかを表す指標。リスクや不確実性の大きさを評価する。",
       "importance": 5
     },
     {
       "id": "1007",
       "majorCategory": "確率論",
-      "minorCategory": "確率変数",
-      "name": "期待値（離散）",
-      "latex": "E[X] = \\sum xP(X=x)",
-      "importance": 5
+      "minorCategory": "基本概念",
+      "name": "標準偏差",
+      "latex": "\\sigma=\\sqrt{Var(X)}",
+      "description": "分散の平方根で、ばらつきを元の単位で示す。分散より直感的に理解しやすい。",
+      "importance": 4
     },
     {
       "id": "1008",
       "majorCategory": "確率論",
-      "minorCategory": "確率変数",
-      "name": "期待値（連続）",
-      "latex": "E[X] = \\int x f(x)dx",
+      "minorCategory": "期待値・分散",
+      "name": "期待値の定義（離散型）",
+      "latex": "\\displaystyle E[X]=\\sum_{i=1}^{n} x_i p_i",
+      "description": "各値とその確率の積を合計して平均値を求める公式。期待値計算の基本形。",
       "importance": 5
     },
     {
       "id": "1009",
       "majorCategory": "確率論",
-      "minorCategory": "確率変数",
-      "name": "分散",
-      "latex": "Var(X) = E[X^2] - (E[X])^2",
+      "minorCategory": "期待値・分散",
+      "name": "期待値の定義（離散型：確率変数表記）",
+      "latex": "\\displaystyle E[X]=\\sum_x xP(X=x)",
+      "description": "離散型確率変数の標準的な期待値表記。問題演習で最頻出。",
       "importance": 5
     },
     {
       "id": "1010",
       "majorCategory": "確率論",
-      "minorCategory": "確率変数",
-      "name": "線形性",
-      "latex": "E[aX + bY] = aE[X] + bE[Y]",
+      "minorCategory": "期待値・分散",
+      "name": "期待値の定義（連続型）",
+      "latex": "\\displaystyle E[X]=\\int_{-\\infty}^{\\infty} x f(x)\\,dx",
+      "description": "連続分布の平均値を求める公式。密度関数を積分して計算する。",
       "importance": 5
     },
     {
       "id": "1011",
       "majorCategory": "確率論",
-      "minorCategory": "共分散・相関",
-      "name": "共分散",
-      "latex": "Cov(X,Y) = E[XY] - E[X]E[Y]",
-      "importance": 4
+      "minorCategory": "期待値・分散",
+      "name": "二乗の期待値",
+      "latex": "\\displaystyle E[X^2]=\\sum_x x^2P(X=x)",
+      "description": "分散計算や高次モーメントで必要となる二乗平均。Var計算で頻繁に使う。",
+      "importance": 5
     },
     {
       "id": "1012",
       "majorCategory": "確率論",
-      "minorCategory": "共分散・相関",
-      "name": "相関係数",
-      "latex": "\\rho = \\frac{Cov(X,Y)}{\\sqrt{Var(X)Var(Y)}}",
-      "importance": 3
+      "minorCategory": "期待値・分散",
+      "name": "二乗の期待値（連続型）",
+      "latex": "\\displaystyle E[X^2]=\\int_{-\\infty}^{\\infty} x^2 f(x)\\,dx",
+      "description": "連続型分布で二乗平均を求める公式。分散導出に必須。",
+      "importance": 5
     },
     {
       "id": "1013",
       "majorCategory": "確率論",
-      "minorCategory": "不等式",
-      "name": "マルコフ不等式",
-      "latex": "P(X \\ge a) \\le \\frac{E[X]}{a}",
-      "importance": 3
+      "minorCategory": "期待値・分散",
+      "name": "分散の定義",
+      "latex": "\\displaystyle Var(X)=E[(X-E[X])^2]",
+      "description": "平均からの偏差平方の平均として分散を定義する公式。概念理解に重要。",
+      "importance": 5
     },
     {
       "id": "1014",
       "majorCategory": "確率論",
-      "minorCategory": "不等式",
-      "name": "チェビシェフ不等式",
-      "latex": "P(|X-\\mu| \\ge k\\sigma) \\le \\frac{1}{k^2}",
-      "importance": 4
+      "minorCategory": "期待値・分散",
+      "name": "分散の計算公式",
+      "latex": "\\displaystyle Var(X)=E[X^2]-(E[X])^2",
+      "description": "計算効率の高い分散公式。実践問題ではこちらを使うことが多い。",
+      "importance": 5
     },
     {
       "id": "1015",
       "majorCategory": "確率論",
-      "minorCategory": "極限定理",
-      "name": "中心極限定理",
-      "latex": "\\frac{X_1 + \\cdots + X_n - n\\mu}{\\sqrt{n\\sigma^2}} \\to N(0,1)",
+      "minorCategory": "期待値・分散",
+      "name": "標準偏差",
+      "latex": "\\displaystyle \\sigma=\\sqrt{Var(X)}",
+      "description": "分散を平方根に変換し、元単位で散らばりを示す。",
       "importance": 5
     },
     {
       "id": "1016",
       "majorCategory": "確率論",
+      "minorCategory": "期待値・分散",
+      "name": "期待値の線形性",
+      "latex": "\\displaystyle E[aX+b]=aE[X]+b",
+      "description": "線形変換後の期待値を簡単に求める性質。計算短縮に必須。",
+      "importance": 5
+    },
+    {
+      "id": "1017",
+      "majorCategory": "確率論",
+      "minorCategory": "期待値・分散",
+      "name": "複数変数の線形性",
+      "latex": "\\displaystyle E[aX+bY+c]=aE[X]+bE[Y]+c",
+      "description": "複数変数でも期待値は線形に分解可能。複雑な期待値問題で有効。",
+      "importance": 5
+    },
+    {
+      "id": "1018",
+      "majorCategory": "確率論",
+      "minorCategory": "基本確率",
+      "name": "加法定理",
+      "latex": "P(A \\cup B)=P(A)+P(B)-P(A \\cap B)",
+      "description": "少なくとも一方が起こる確率を求める公式。重複分を引く点が重要。",
+      "importance": 5
+    },
+    {
+      "id": "1019",
+      "majorCategory": "確率論",
+      "minorCategory": "基本確率",
+      "name": "乗法定理",
+      "latex": "P(A \\cap B)=P(A)P(B|A)",
+      "description": "同時確率を条件付き確率で表現する公式。依存関係がある場合に使用。",
+      "importance": 5
+    },
+    {
+      "id": "1020",
+      "majorCategory": "確率論",
+      "minorCategory": "基本確率",
+      "name": "独立",
+      "latex": "P(A \\cap B)=P(A)P(B)",
+      "description": "独立事象なら同時確率は積で求まる。独立性判断が重要。",
+      "importance": 5
+    },
+    {
+      "id": "1021",
+      "majorCategory": "確率論",
+      "minorCategory": "条件付き確率",
+      "name": "条件付き確率の定義",
+      "latex": "P(A|B)=\\frac{P(A \\cap B)}{P(B)}",
+      "description": "条件付き情報下での確率更新公式。情報追加時の基本。",
+      "importance": 5
+    },
+    {
+      "id": "1022",
+      "majorCategory": "確率論",
+      "minorCategory": "条件付き確率",
+      "name": "ベイズの定理",
+      "latex": "P(A|B)=\\frac{P(B|A)P(A)}{P(B)}",
+      "description": "条件を逆転して原因確率を求める公式。診断・推定で頻出。",
+      "importance": 5
+    },
+    {
+      "id": "1023",
+      "majorCategory": "確率論",
+      "minorCategory": "条件付き確率",
+      "name": "全確率の法則",
+      "latex": "P(A)=\\sum_i P(A|B_i)P(B_i)",
+      "description": "複数ケースに分解して全体確率を求める公式。",
+      "importance": 5
+    },
+    {
+      "id": "1024",
+      "majorCategory": "確率論",
+      "minorCategory": "共分散・相関",
+      "name": "共分散",
+      "latex": "Cov(X,Y)=E[XY]-E[X]E[Y]",
+      "description": "2変数の同時変動を測る指標。正負で関係方向を判断する。",
+      "importance": 4
+    },
+    {
+      "id": "1025",
+      "majorCategory": "確率論",
+      "minorCategory": "共分散・相関",
+      "name": "相関係数",
+      "latex": "\\rho=\\frac{Cov(X,Y)}{\\sqrt{Var(X)Var(Y)}}",
+      "description": "共分散を標準化した指標。-1から1で関係強度を比較できる。",
+      "importance": 3
+    },
+    {
+      "id": "1026",
+      "majorCategory": "確率論",
+      "minorCategory": "不等式",
+      "name": "マルコフ不等式",
+      "latex": "P(X \\ge a)\\le\\frac{E[X]}{a}",
+      "description": "大きな値をとる確率の上限評価。分布詳細不明でも利用可能。",
+      "importance": 3
+    },
+    {
+      "id": "1027",
+      "majorCategory": "確率論",
+      "minorCategory": "不等式",
+      "name": "チェビシェフ不等式",
+      "latex": "P(|X-\\mu|\\ge k\\sigma)\\le\\frac{1}{k^2}",
+      "description": "平均から大きく外れる確率の上限。分散のみで評価可能。",
+      "importance": 4
+    },
+    {
+      "id": "1028",
+      "majorCategory": "確率論",
+      "minorCategory": "極限定理",
+      "name": "中心極限定理",
+      "latex": "\\displaystyle \\frac{X_1+\\cdots+X_n-n\\mu}{\\sqrt{n\\sigma^2}}\\to N(0,1)",
+      "description": "標本和が正規分布に近づく定理。統計推定の中心。",
+      "importance": 5
+    },
+    {
+      "id": "1029",
+      "majorCategory": "確率論",
       "minorCategory": "極限定理",
       "name": "大数の法則",
-      "latex": "\\frac{1}{n}\\sum_{i=1}^n X_i \\to \\mu",
+      "latex": "\\displaystyle \\frac{1}{n}\\sum_{i=1}^{n}X_i\\to\\mu",
+      "description": "試行回数増加で平均が期待値に近づく法則。確率の安定性を示す。",
       "importance": 4
     },
     {
       "id": "2001",
-      "majorCategory": "分布論",
-      "minorCategory": "離散分布",
-      "name": "二項分布",
-      "latex": "P(X=k) = {n \\choose k} p^k (1-p)^{n-k}",
+      "majorCategory": "場合の数",
+      "minorCategory": "階乗",
+      "name": "階乗",
+      "latex": "n!=n(n-1)(n-2)\\cdots1",
+      "description": "順列や組合せの基礎となる積。場合の数分野の土台。",
       "importance": 5
     },
     {
       "id": "2002",
-      "majorCategory": "分布論",
-      "minorCategory": "離散分布",
-      "name": "ポアソン分布",
-      "latex": "P(X=k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}",
+      "majorCategory": "場合の数",
+      "minorCategory": "順列",
+      "name": "n個からr個を選ぶ順列",
+      "latex": "\\displaystyle {}_nP_r=\\frac{n!}{(n-r)!}",
+      "description": "順序を考慮してr個選ぶ場合の数。並べ方問題で使用。",
       "importance": 5
     },
     {
       "id": "2003",
-      "majorCategory": "分布論",
-      "minorCategory": "連続分布",
-      "name": "正規分布",
-      "latex": "X \\sim N(\\mu, \\sigma^2)",
+      "majorCategory": "場合の数",
+      "minorCategory": "組合せ",
+      "name": "n個からr個を選ぶ組合せ",
+      "latex": "\\displaystyle {}_nC_r=\\frac{n!}{r!(n-r)!}",
+      "description": "順序を無視して選ぶ場合の数。選択問題の基本。",
       "importance": 5
     },
     {
       "id": "2004",
-      "majorCategory": "分布論",
-      "minorCategory": "連続分布",
-      "name": "指数分布",
-      "latex": "f(x) = \\lambda e^{-\\lambda x}",
+      "majorCategory": "場合の数",
+      "minorCategory": "重複順列",
+      "name": "重複順列",
+      "latex": "n^r",
+      "description": "同じものを何度でも選べる並べ方。暗証番号などに利用。",
       "importance": 4
     },
     {
       "id": "2005",
-      "majorCategory": "分布論",
-      "minorCategory": "連続分布",
-      "name": "指数分布の無記憶性",
-      "latex": "P(X>s+t | X>s) = P(X>t)",
+      "majorCategory": "場合の数",
+      "minorCategory": "重複組合せ",
+      "name": "重複組合せ",
+      "latex": "\\displaystyle {}_nH_r={}_{n+r-1}C_r",
+      "description": "重複選択可能な組合せ数。玉の分配問題などで使用。",
+      "importance": 4
+    },
+    {
+      "id": "2006",
+      "majorCategory": "場合の数",
+      "minorCategory": "二項定理",
+      "name": "二項展開",
+      "latex": "\\displaystyle (x+y)^n=\\sum_{r=0}^{n} {}_nC_r x^{n-r}y^r",
+      "description": "多項式展開の基本公式。係数計算や確率分布導出に重要。",
       "importance": 5
     },
     {
       "id": "3001",
-      "majorCategory": "統計",
-      "minorCategory": "推定",
-      "name": "標本平均",
-      "latex": "\\bar{X} = \\frac{1}{n} \\sum X_i",
+      "majorCategory": "分布論",
+      "minorCategory": "離散分布",
+      "name": "二項分布",
+      "latex": "\\displaystyle P(X=k)={n \\choose k}p^k(1-p)^{n-k}",
+      "description": "成功・失敗試行をn回繰り返す分布。基本中の基本。",
       "importance": 5
     },
     {
       "id": "3002",
-      "majorCategory": "統計",
-      "minorCategory": "推定",
-      "name": "不偏分散",
-      "latex": "S^2 = \\frac{1}{n-1} \\sum (X_i - \\bar{X})^2",
+      "majorCategory": "分布論",
+      "minorCategory": "離散分布",
+      "name": "ポアソン分布",
+      "latex": "\\displaystyle P(X=k)=\\frac{\\lambda^k e^{-\\lambda}}{k!}",
+      "description": "稀な事象の回数分布。事故件数や到着数に用いる。",
       "importance": 5
     },
     {
       "id": "3003",
-      "majorCategory": "統計",
-      "minorCategory": "推定",
-      "name": "最尤推定",
-      "latex": "\\hat{\\theta} = \\arg\\max L(\\theta)",
+      "majorCategory": "分布論",
+      "minorCategory": "連続分布",
+      "name": "正規分布",
+      "latex": "X\\sim N(\\mu,\\sigma^2)",
+      "description": "自然現象や誤差分布の代表。統計学全般で最重要。",
       "importance": 5
     },
     {
       "id": "3004",
-      "majorCategory": "統計",
-      "minorCategory": "検定",
-      "name": "Z検定",
-      "latex": "\\frac{\\bar{X} - \\mu}{\\sigma/\\sqrt{n}}",
-      "importance": 4
+      "majorCategory": "分布論",
+      "minorCategory": "連続分布",
+      "name": "標準正規分布",
+      "latex": "Z\\sim N(0,1)",
+      "description": "正規分布を標準化した形。Z表利用の基本。",
+      "importance": 5
     },
     {
       "id": "3005",
-      "majorCategory": "統計",
-      "minorCategory": "検定",
-      "name": "t検定",
-      "latex": "\\frac{\\bar{X} - \\mu}{S/\\sqrt{n}}",
+      "majorCategory": "分布論",
+      "minorCategory": "連続分布",
+      "name": "指数分布",
+      "latex": "\\displaystyle f(x)=\\lambda e^{-\\lambda x}",
+      "description": "待ち時間分布として利用。無記憶性が特徴。",
       "importance": 4
     },
     {
       "id": "3006",
-      "majorCategory": "統計",
-      "minorCategory": "検定",
-      "name": "カイ二乗統計量",
-      "latex": "\\sum \\frac{(O-E)^2}{E}",
-      "importance": 3
-    },
-    {
-      "id": "3007",
-      "majorCategory": "統計",
-      "minorCategory": "区間推定",
-      "name": "信頼区間（正規）",
-      "latex": "\\bar{X} \\pm z_{\\alpha/2}\\frac{\\sigma}{\\sqrt{n}}",
+      "majorCategory": "分布論",
+      "minorCategory": "連続分布",
+      "name": "指数分布の無記憶性",
+      "latex": "\\displaystyle P(X>s+t|X>s)=P(X>t)",
+      "description": "過去経過時間に依存しない性質。指数分布特有。",
       "importance": 5
     },
     {
       "id": "4001",
-      "majorCategory": "線形代数",
-      "minorCategory": "行列",
-      "name": "逆行列",
-      "latex": "A^{-1}A = I",
-      "importance": 3
+      "majorCategory": "統計",
+      "minorCategory": "推定",
+      "name": "標本平均",
+      "latex": "\\displaystyle \\bar{X}=\\frac{1}{n}\\sum_{i=1}^{n}X_i",
+      "description": "標本データの平均。母平均推定の基本。",
+      "importance": 5
     },
     {
       "id": "4002",
-      "majorCategory": "線形代数",
-      "minorCategory": "固有値",
-      "name": "固有値方程式",
-      "latex": "Ax = \\lambda x",
+      "majorCategory": "統計",
+      "minorCategory": "推定",
+      "name": "不偏分散",
+      "latex": "\\displaystyle S^2=\\frac{1}{n-1}\\sum_{i=1}^{n}(X_i-\\bar{X})^2",
+      "description": "母分散を偏りなく推定する分散。n-1に注意。",
+      "importance": 5
+    },
+    {
+      "id": "4003",
+      "majorCategory": "統計",
+      "minorCategory": "推定",
+      "name": "最尤推定",
+      "latex": "\\displaystyle \\hat{\\theta}=\\arg\\max L(\\theta)",
+      "description": "観測データが最も起こりやすい母数を選ぶ方法。",
+      "importance": 5
+    },
+    {
+      "id": "4004",
+      "majorCategory": "統計",
+      "minorCategory": "検定",
+      "name": "Z検定",
+      "latex": "\\displaystyle \\frac{\\bar{X}-\\mu}{\\sigma/\\sqrt{n}}",
+      "description": "母分散既知時の平均検定。",
+      "importance": 4
+    },
+    {
+      "id": "4005",
+      "majorCategory": "統計",
+      "minorCategory": "検定",
+      "name": "t検定",
+      "latex": "\\displaystyle \\frac{\\bar{X}-\\mu}{S/\\sqrt{n}}",
+      "description": "母分散未知時の平均検定。小標本で重要。",
+      "importance": 4
+    },
+    {
+      "id": "4006",
+      "majorCategory": "統計",
+      "minorCategory": "検定",
+      "name": "カイ二乗統計量",
+      "latex": "\\displaystyle \\sum \\frac{(O-E)^2}{E}",
+      "description": "適合度検定や独立性検定に使用。",
       "importance": 3
     },
     {
+      "id": "4007",
+      "majorCategory": "統計",
+      "minorCategory": "区間推定",
+      "name": "信頼区間（正規）",
+      "latex": "\\displaystyle \\bar{X}\\pm z_{\\alpha/2}\\frac{\\sigma}{\\sqrt{n}}",
+      "description": "母平均推定範囲を示す公式。",
+      "importance": 5
+    },
+    {
       "id": "5001",
-      "majorCategory": "微積分",
-      "minorCategory": "微分",
-      "name": "微分の定義",
-      "latex": "\\frac{d}{dx}f(x)",
+      "majorCategory": "線形代数",
+      "minorCategory": "行列",
+      "name": "逆行列",
+      "latex": "A^{-1}A=I",
+      "description": "連立方程式解法や行列変換の逆操作で使用。",
       "importance": 3
     },
     {
       "id": "5002",
-      "majorCategory": "微積分",
-      "minorCategory": "積分",
-      "name": "定積分",
-      "latex": "\\int_a^b f(x)dx",
+      "majorCategory": "線形代数",
+      "minorCategory": "固有値",
+      "name": "固有値方程式",
+      "latex": "Ax=\\lambda x",
+      "description": "線形変換の本質的方向を示す。",
       "importance": 3
     },
     {
-      "id": "5003",
-      "majorCategory": "微積分",
-      "minorCategory": "多変数",
-      "name": "偏微分",
-      "latex": "\\frac{\\partial f}{\\partial x}",
-      "importance": 2
-    },
-    {
-      "id": "5004",
-      "majorCategory": "微積分",
-      "minorCategory": "変数変換",
-      "name": "ヤコビアン",
-      "latex": "\\left| \\frac{\\partial(x,y)}{\\partial(u,v)} \\right|",
-      "importance": 4
-    },
-    {
       "id": "6001",
-      "majorCategory": "確率過程",
-      "minorCategory": "マルコフ連鎖",
-      "name": "遷移確率",
-      "latex": "P(X_{n+1}=j | X_n=i) = p_{ij}",
-      "importance": 4
+      "majorCategory": "微積分",
+      "minorCategory": "微分",
+      "name": "微分係数",
+      "latex": "\\displaystyle \\frac{d}{dx}f(x)",
+      "description": "変化率を求める基本操作。",
+      "importance": 3
     },
     {
       "id": "6002",
-      "majorCategory": "確率過程",
-      "minorCategory": "マルコフ連鎖",
-      "name": "定常分布",
-      "latex": "\\pi = \\pi P",
+      "majorCategory": "微積分",
+      "minorCategory": "積分",
+      "name": "定積分",
+      "latex": "\\displaystyle \\int_a^b f(x)\\,dx",
+      "description": "面積や累積量を求める。",
+      "importance": 3
+    },
+    {
+      "id": "6003",
+      "majorCategory": "微積分",
+      "minorCategory": "多変数",
+      "name": "偏微分",
+      "latex": "\\displaystyle \\frac{\\partial f}{\\partial x}",
+      "description": "多変数関数の一方向変化率。",
+      "importance": 2
+    },
+    {
+      "id": "6004",
+      "majorCategory": "微積分",
+      "minorCategory": "変数変換",
+      "name": "ヤコビアン",
+      "latex": "\\displaystyle \\left|\\frac{\\partial(x,y)}{\\partial(u,v)}\\right|",
+      "description": "多変数変換時の面積・体積補正。",
       "importance": 4
     },
     {
       "id": "7001",
-      "majorCategory": "保険数理",
-      "minorCategory": "利息",
-      "name": "現在価値",
-      "latex": "PV = \\frac{1}{(1+i)^t}",
-      "importance": 5
+      "majorCategory": "確率過程",
+      "minorCategory": "マルコフ連鎖",
+      "name": "遷移確率",
+      "latex": "\\displaystyle P(X_{n+1}=j|X_n=i)=p_{ij}",
+      "description": "次状態が現在状態のみで決まる過程。",
+      "importance": 4
     },
     {
       "id": "7002",
-      "majorCategory": "保険数理",
-      "minorCategory": "年金",
-      "name": "年金現価",
-      "latex": "a_{\\overline{n}|} = \\sum_{t=1}^n \\frac{1}{(1+i)^t}",
-      "importance": 5
-    },
-    {
-      "id": "7003",
-      "majorCategory": "保険数理",
-      "minorCategory": "生命表",
-      "name": "生存確率",
-      "latex": "{}_tp_x",
-      "importance": 5
-    },
-    {
-      "id": "7004",
-      "majorCategory": "保険数理",
-      "minorCategory": "生命表",
-      "name": "死亡確率",
-      "latex": "q_x",
-      "importance": 5
+      "majorCategory": "確率過程",
+      "minorCategory": "マルコフ連鎖",
+      "name": "定常分布",
+      "latex": "\\displaystyle \\pi=\\pi P",
+      "description": "長期的に安定する分布。",
+      "importance": 4
     },
     {
       "id": "8001",
-      "majorCategory": "応用確率",
-      "minorCategory": "期待値",
-      "name": "条件付き期待値の法則",
-      "latex": "E[X] = E[E[X|Y]]",
+      "majorCategory": "保険数理",
+      "minorCategory": "利息",
+      "name": "現在価値",
+      "latex": "\\displaystyle PV=\\frac{1}{(1+i)^t}",
+      "description": "将来価値を現在価値へ割引く基本公式。",
       "importance": 5
     },
     {
       "id": "8002",
+      "majorCategory": "保険数理",
+      "minorCategory": "年金",
+      "name": "年金現価",
+      "latex": "\\displaystyle a_{\\overline{n}|}=\\sum_{t=1}^{n}\\frac{1}{(1+i)^t}",
+      "description": "年金支払い総額の現在価値。",
+      "importance": 5
+    },
+    {
+      "id": "8003",
+      "majorCategory": "保険数理",
+      "minorCategory": "生命表",
+      "name": "生存確率",
+      "latex": "\\displaystyle {}_tp_x",
+      "description": "x歳がt年後生存する確率。",
+      "importance": 5
+    },
+    {
+      "id": "8004",
+      "majorCategory": "保険数理",
+      "minorCategory": "生命表",
+      "name": "死亡確率",
+      "latex": "\\displaystyle q_x",
+      "description": "x歳が1年以内に死亡する確率。",
+      "importance": 5
+    },
+    {
+      "id": "9001",
+      "majorCategory": "応用確率",
+      "minorCategory": "期待値",
+      "name": "条件付き期待値の法則",
+      "latex": "\\displaystyle E[X]=E[E[X|Y]]",
+      "description": "条件付きに分解して期待値を求める。複雑問題で強力。",
+      "importance": 5
+    },
+    {
+      "id": "9002",
       "majorCategory": "応用確率",
       "minorCategory": "分散",
       "name": "分散の分解",
-      "latex": "Var(X) = E[Var(X|Y)] + Var(E[X|Y])",
+      "latex": "\\displaystyle Var(X)=E[Var(X|Y)]+Var(E[X|Y])",
+      "description": "総分散を条件付き分散と条件付き平均の分散に分解する重要公式。",
       "importance": 5
     }
   ]

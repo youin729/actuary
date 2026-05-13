@@ -3,15 +3,29 @@ import path from "node:path";
 
 const root = process.cwd();
 const formulasPath = path.join(root, "public", "formulas", "formulas.json");
+const problemsPath = path.join(root, "public", "problems", "problems.json");
 const cssPath = path.join(root, "app", "globals.css");
 const outputDir = path.join(root, "docs");
 
 const formulasJson = await readFile(formulasPath, "utf8");
+const problemsJson = await readFile(problemsPath, "utf8");
 const css = await readFile(cssPath, "utf8");
-const data = JSON.parse(formulasJson);
+const data = {
+  ...JSON.parse(formulasJson),
+  ...JSON.parse(problemsJson)
+};
 
 function escapeScriptJson(value) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 const html = `<!doctype html>
@@ -39,6 +53,7 @@ const html = `<!doctype html>
       <div id="app" class="screen-content"></div>
       <nav class="bottom-nav">
         <button type="button" id="nav-index" class="active"><span class="grid-icon">▦</span>数式</button>
+        <button type="button" id="nav-problems"><span class="grid-icon">□</span>練習問題</button>
         <button type="button" id="nav-stats"><span class="bars-icon">▥</span>統計</button>
       </nav>
     </section>
@@ -46,20 +61,28 @@ const html = `<!doctype html>
   <script id="formula-data" type="application/json">${escapeScriptJson(data)}</script>
   <script>
 (() => {
-  const formulas = JSON.parse(document.getElementById("formula-data").textContent).formulas;
+  const payload = JSON.parse(document.getElementById("formula-data").textContent);
+  const formulas = payload.formulas;
+  const problems = payload.problems || [];
   const statsKey = "math-trainer-formula-stats";
   const pastelClasses = ["mint", "peach", "green", "blue", "lime", "violet", "cream"];
   const categoryIcons = { "確率論": "P(A)", "分布論": "N(μ)", "統計": "x̄", "線形代数": "Ax", "微積分": "∫dx", "確率過程": "Pᵢⱼ", "保険数理": "PV", "応用確率": "E[X]" };
   const app = document.getElementById("app");
   const navIndex = document.getElementById("nav-index");
+  const navProblems = document.getElementById("nav-problems");
   const navStats = document.getElementById("nav-stats");
   let view = "index";
   let selectedMajor = null;
   let selectedMinor = null;
+  let selectedProblemMajor = null;
+  let selectedProblemMinor = null;
   let currentFormula = formulas[0];
+  let currentProblem = problems[0];
   let practiceState = "question";
   let question = null;
+  let problemQuestion = null;
   let placedChoices = [];
+  let showProblemHint = false;
   let draggingChoice = null;
 
   function groupBy(items, getter) {
@@ -202,8 +225,25 @@ const html = `<!doctype html>
     return { targets, choices: shuffled, leftPrefix };
   }
 
+  function makeProblemQuestion(problem) {
+    const targets = latexToAnswerTokens(problem.answer);
+    const distractors = problems.flatMap((item) => latexToAnswerTokens(item.answer))
+      .filter((token) => !targets.includes(token) && token.length <= 8)
+      .filter((token, index, array) => array.indexOf(token) === index)
+      .slice(0, 12);
+    const choices = [...targets, ...distractors].filter((choice, index, array) => array.indexOf(choice) === index).slice(0, 18);
+    const shuffled = choices.map((choice, index) => ({ choice, sort: (choice.charCodeAt(0) * 19 + index * 29) % 101 }))
+      .sort((a, b) => a.sort - b.sort).map((item) => item.choice);
+    return { targets, choices: shuffled, leftPrefix: "" };
+  }
+
+  function activeQuestion() {
+    return view === "problemPractice" ? problemQuestion : question;
+  }
+
   function setActiveNav() {
-    navIndex.classList.toggle("active", view === "index" || view === "list");
+    navIndex.classList.toggle("active", view === "index" || view === "list" || view === "practice");
+    navProblems.classList.toggle("active", view === "problemIndex" || view === "problemList" || view === "problemPractice");
     navStats.classList.toggle("active", view === "stats");
   }
 
@@ -212,6 +252,9 @@ const html = `<!doctype html>
     if (view === "index") renderIndex();
     if (view === "list") renderList();
     if (view === "practice") renderPractice();
+    if (view === "problemIndex") renderProblemIndex();
+    if (view === "problemList") renderProblemList();
+    if (view === "problemPractice") renderProblemPractice();
     if (view === "stats") renderStats();
     typeset();
   }
@@ -267,18 +310,20 @@ const html = `<!doctype html>
   }
 
   function placeChoice(choice) {
-    const next = Array.from({ length: question.targets.length }, (_, index) => placedChoices[index] || "");
+    const currentQuestion = activeQuestion();
+    const next = Array.from({ length: currentQuestion.targets.length }, (_, index) => placedChoices[index] || "");
     const emptyIndex = next.findIndex((value) => !value);
     if (emptyIndex >= 0) next[emptyIndex] = choice;
     else next.push(choice);
-    placedChoices = next.slice(0, question.targets.length);
+    placedChoices = next.slice(0, currentQuestion.targets.length);
     render();
   }
 
   function revealHint() {
-    const next = Array.from({ length: question.targets.length }, (_, index) => placedChoices[index] || "");
+    const currentQuestion = activeQuestion();
+    const next = Array.from({ length: currentQuestion.targets.length }, (_, index) => placedChoices[index] || "");
     const blanks = next.map((value, index) => value ? -1 : index).filter((index) => index >= 0);
-    blanks.slice(0, Math.max(1, Math.ceil(question.targets.length * 0.3))).forEach((index) => { next[index] = question.targets[index]; });
+    blanks.slice(0, Math.max(1, Math.ceil(currentQuestion.targets.length * 0.3))).forEach((index) => { next[index] = currentQuestion.targets[index]; });
     placedChoices = next;
     render();
   }
@@ -303,7 +348,7 @@ const html = `<!doctype html>
     const complete = stats.rememberedIds.length;
     const progress = formulas.length ? (complete / formulas.length) * 100 : 0;
     if (practiceState === "answer") {
-      app.innerHTML = '<div class="practice-view"><div class="practice-top-row"><button type="button" class="practice-back-button" id="back-list">‹ 公式一覧</button></div><div class="progress-label">完了: ' + complete + '/' + formulas.length + '</div><div class="progress-track"><span style="width:' + progress + '%"></span></div><section class="answer-reveal-card"><h2>' + currentFormula.name + '</h2><div class="submitted-answer"><span>あなたの解答</span><div class="submitted-token-row">' + placedChoices.map((choice, index) => '<b class="math" key="' + index + '">' + mathText(choice) + '</b>').join("") + '</div></div><span class="answer-label">正しい公式</span><strong class="math">' + mathText(currentFormula.latex) + '</strong></section><div class="next-row"><button type="button" class="large-button" id="next-formula">次へ</button></div></div>';
+      app.innerHTML = '<div class="practice-view"><div class="practice-top-row"><button type="button" class="practice-back-button" id="back-list">‹ 公式一覧</button></div><div class="progress-label">完了: ' + complete + '/' + formulas.length + '</div><div class="progress-track"><span style="width:' + progress + '%"></span></div><section class="answer-reveal-card"><h2>' + escapeHtml(currentFormula.name) + '</h2><div class="submitted-answer"><span>あなたの解答</span><div class="submitted-token-row">' + placedChoices.map((choice, index) => '<b class="math" key="' + index + '">' + mathText(choice) + '</b>').join("") + '</div></div><span class="answer-label">正しい公式</span><strong class="math">' + mathText(currentFormula.latex) + '</strong>' + (currentFormula.description ? '<p class="formula-description">' + escapeHtml(currentFormula.description) + '</p>' : '') + '</section><div class="next-row"><button type="button" class="large-button" id="next-formula">次へ</button></div></div>';
       document.getElementById("back-list").addEventListener("click", backToList);
       document.getElementById("next-formula").addEventListener("click", nextFormula);
       return;
@@ -312,9 +357,9 @@ const html = `<!doctype html>
       (practiceState === "question" ? '<button type="button" class="hint-fill-button" id="hint-button">ヒント: 30%表示</button>' : '') +
       '<section class="' + (practiceState === "error" ? 'question-card wrong' : 'question-card') + '">' +
       (practiceState === "error" ? '<button type="button" class="retry-icon" id="clear-answer">↻</button>' : '') +
-      '<h2>' + currentFormula.name + '</h2><div class="choice-bank">' + question.choices.map((choice, index) => '<button type="button" class="token ' + pastelClasses[index % pastelClasses.length] + '" data-choice="' + choice + '"><span class="math">' + mathText(choice) + '</span></button>').join("") + '</div>' +
-      '<div class="formula-fill"><span class="math formula-static">' + mathText(question.leftPrefix) + '</span>' + question.targets.map((target, index) => '<button type="button" class="' + (placedChoices[index] ? 'drop-box filled' : 'drop-box') + '" data-clear="' + index + '">' + (placedChoices[index] ? '<span class="math">' + mathText(placedChoices[index]) + '</span>' : '') + '</button>').join("") + '</div></section>' +
-      (practiceState === "question" ? '<div class="practice-actions"><button type="button" class="large-button" id="skip-button">スキップ</button><button type="button" class="large-button" id="submit-button">答える</button></div>' : '<div class="next-row"><button type="button" class="large-button" id="next-formula">次へ</button></div>') + '</div>';
+      '<h2>' + escapeHtml(currentFormula.name) + '</h2><div class="choice-bank">' + question.choices.map((choice, index) => '<button type="button" class="token ' + pastelClasses[index % pastelClasses.length] + '" data-choice="' + choice + '"><span class="math">' + mathText(choice) + '</span></button>').join("") + '</div>' +
+      '<div class="formula-fill"><span class="math formula-static">' + mathText(question.leftPrefix) + '</span>' + question.targets.map((target, index) => '<button type="button" class="' + (placedChoices[index] ? 'drop-box filled' : 'drop-box') + '" data-clear="' + index + '">' + (placedChoices[index] ? '<span class="math">' + mathText(placedChoices[index]) + '</span>' : '') + '</button>').join("") + '</div>' + (currentFormula.description ? '<p class="formula-description">' + escapeHtml(currentFormula.description) + '</p>' : '') + '</section>' +
+      (practiceState === "question" ? '<div class="practice-actions"><button type="button" class="large-button" id="skip-button">スキップ</button><button type="button" class="large-button" id="submit-button">答える</button></div>' : practiceState === "error" ? '<div class="next-row"><button type="button" class="large-button" id="reveal-answer">解答表示</button></div>' : '<div class="next-row"><button type="button" class="large-button" id="next-formula">次へ</button></div>') + '</div>';
     document.getElementById("back-list").addEventListener("click", backToList);
     document.querySelectorAll(".token").forEach((button) => button.addEventListener("click", () => placeChoice(button.dataset.choice)));
     document.querySelectorAll(".drop-box").forEach((button) => button.addEventListener("click", () => { placedChoices[Number(button.dataset.clear)] = ""; render(); }));
@@ -322,6 +367,7 @@ const html = `<!doctype html>
     document.getElementById("clear-answer")?.addEventListener("click", () => { placedChoices = []; practiceState = "question"; render(); });
     document.getElementById("skip-button")?.addEventListener("click", nextFormula);
     document.getElementById("submit-button")?.addEventListener("click", submitAnswer);
+    document.getElementById("reveal-answer")?.addEventListener("click", () => { practiceState = "answer"; render(); });
     document.getElementById("next-formula")?.addEventListener("click", nextFormula);
   }
 
@@ -330,6 +376,95 @@ const html = `<!doctype html>
     selectedMinor = currentFormula.minorCategory;
     view = "list";
     render();
+  }
+
+  function renderProblemIndex() {
+    const majorGroups = groupBy(problems, (problem) => problem.majorCategory);
+    const rows = Object.entries(majorGroups).flatMap(([major, majorProblems]) =>
+      Object.entries(groupBy(majorProblems, (problem) => problem.minorCategory)).map(([minor, rowProblems]) => ({ major, minor, problems: rowProblems }))
+    );
+    app.innerHTML = '<div class="category-list">' + rows.map((row, index) =>
+      '<button type="button" class="' + (index === 0 ? 'category-card featured' : 'category-card') + '" data-major="' + escapeHtml(row.major) + '" data-minor="' + escapeHtml(row.minor) + '">' +
+      '<span class="category-icon">' + (categoryIcons[row.major] || 'Q') + '</span>' +
+      '<span class="category-title"><b>' + escapeHtml(row.major) + '</b><small>' + escapeHtml(row.minor) + '・' + row.problems.length + '問</small></span>' +
+      '<span class="category-count">' + row.problems.length + '</span></button>'
+    ).join("") + "</div>";
+    app.querySelectorAll(".category-card").forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedProblemMajor = button.dataset.major;
+        selectedProblemMinor = button.dataset.minor;
+        view = "problemList";
+        render();
+      });
+    });
+  }
+
+  function renderProblemList() {
+    const visible = problems.filter((problem) => (!selectedProblemMajor || problem.majorCategory === selectedProblemMajor) && (!selectedProblemMinor || problem.minorCategory === selectedProblemMinor));
+    const groups = groupBy(visible, (problem) => problem.minorCategory);
+    app.innerHTML = '<div class="list-view"><div class="page-title-row"><h2>' + escapeHtml(selectedProblemMinor || selectedProblemMajor || "練習問題") + '</h2><button type="button" class="back-button" id="back-problem-index">‹</button></div>' +
+      Object.entries(groups).map(([minor, items]) => '<section class="minor-section"><h3>' + escapeHtml(minor) + '</h3>' + items.map((problem) =>
+        '<button type="button" class="problem-card" data-id="' + escapeHtml(problem.id) + '"><span class="problem-card-head"><b>' + escapeHtml(problem.id) + '</b><small>' + escapeHtml(problem.formulaName) + '</small></span><span class="problem-card-question">' + escapeHtml(problem.question) + '</span><strong class="math">' + mathText(problem.latex) + '</strong></button>'
+      ).join("") + '</section>').join("") + '</div>';
+    document.getElementById("back-problem-index").addEventListener("click", () => { view = "problemIndex"; render(); });
+    app.querySelectorAll(".problem-card").forEach((button) => {
+      button.addEventListener("click", () => startProblemPractice(problems.find((problem) => problem.id === button.dataset.id)));
+    });
+  }
+
+  function startProblemPractice(problem) {
+    currentProblem = problem || currentProblem || problems[0];
+    problemQuestion = makeProblemQuestion(currentProblem);
+    placedChoices = [];
+    practiceState = "question";
+    showProblemHint = false;
+    view = "problemPractice";
+    render();
+  }
+
+  function submitProblemAnswer() {
+    const correct = problemQuestion.targets.length === placedChoices.length && problemQuestion.targets.every((target, index) => placedChoices[index] === target);
+    practiceState = correct ? "answer" : "error";
+    render();
+  }
+
+  function nextProblem() {
+    const index = problems.findIndex((problem) => problem.id === currentProblem.id);
+    startProblemPractice(problems[(index + 1) % problems.length]);
+  }
+
+  function backToProblemList() {
+    selectedProblemMajor = currentProblem.majorCategory;
+    selectedProblemMinor = currentProblem.minorCategory;
+    view = "problemList";
+    render();
+  }
+
+  function renderProblemPractice() {
+    if (!problemQuestion) problemQuestion = makeProblemQuestion(currentProblem);
+    if (practiceState === "answer") {
+      app.innerHTML = '<div class="practice-view"><div class="practice-top-row"><button type="button" class="practice-back-button" id="back-problem-list">‹ 練習問題</button></div><section class="answer-reveal-card"><h2>' + escapeHtml(currentProblem.formulaName) + '</h2><p class="problem-text">' + escapeHtml(currentProblem.question) + '</p><div class="submitted-answer"><span>あなたの解答</span><div class="submitted-token-row">' + placedChoices.map((choice, index) => '<b class="math" key="' + index + '">' + mathText(choice) + '</b>').join("") + '</div></div><span class="answer-label">正しい解答</span><strong class="math answer-math">' + mathText(currentProblem.answer) + '</strong><span class="answer-label">解法の式</span><strong class="math support-math">' + mathText(currentProblem.latex) + '</strong></section><div class="next-row"><button type="button" class="large-button" id="next-problem">次へ</button></div></div>';
+      document.getElementById("back-problem-list").addEventListener("click", backToProblemList);
+      document.getElementById("next-problem").addEventListener("click", nextProblem);
+      return;
+    }
+    app.innerHTML = '<div class="practice-view"><div class="practice-top-row"><button type="button" class="practice-back-button" id="back-problem-list">‹ 練習問題</button></div>' +
+      (practiceState === "question" ? '<button type="button" class="hint-fill-button" id="hint-button">ヒント: 数式表示</button>' : '') +
+      '<section class="' + (practiceState === "error" ? 'question-card wrong' : 'question-card') + '">' +
+      (practiceState === "error" ? '<button type="button" class="retry-icon" id="clear-answer">↻</button>' : '') +
+      '<h2>' + escapeHtml(currentProblem.formulaName) + '</h2><p class="problem-text">' + escapeHtml(currentProblem.question) + '</p>' + (showProblemHint ? '<strong class="math support-math">' + mathText(currentProblem.latex) + '</strong>' : '') + '<div class="choice-bank">' +
+      problemQuestion.choices.map((choice, index) => '<button type="button" class="token ' + pastelClasses[index % pastelClasses.length] + '" data-choice="' + escapeHtml(choice) + '"><span class="math">' + mathText(choice) + '</span></button>').join("") + '</div>' +
+      '<div class="formula-fill">' + problemQuestion.targets.map((target, index) => '<button type="button" class="' + (placedChoices[index] ? 'drop-box filled' : 'drop-box') + '" data-clear="' + index + '">' + (placedChoices[index] ? '<span class="math">' + mathText(placedChoices[index]) + '</span>' : '') + '</button>').join("") + '</div></section>' +
+      (practiceState === "question" ? '<div class="practice-actions"><button type="button" class="large-button" id="skip-button">スキップ</button><button type="button" class="large-button" id="submit-button">答える</button></div>' : practiceState === "error" ? '<div class="next-row"><button type="button" class="large-button" id="reveal-answer">解答表示</button></div>' : '<div class="next-row"><button type="button" class="large-button" id="next-problem">次へ</button></div>') + '</div>';
+    document.getElementById("back-problem-list").addEventListener("click", backToProblemList);
+    document.querySelectorAll(".token").forEach((button) => button.addEventListener("click", () => placeChoice(button.dataset.choice)));
+    document.querySelectorAll(".drop-box").forEach((button) => button.addEventListener("click", () => { placedChoices[Number(button.dataset.clear)] = ""; render(); }));
+    document.getElementById("hint-button")?.addEventListener("click", () => { showProblemHint = true; render(); });
+    document.getElementById("clear-answer")?.addEventListener("click", () => { placedChoices = []; practiceState = "question"; render(); });
+    document.getElementById("skip-button")?.addEventListener("click", nextProblem);
+    document.getElementById("submit-button")?.addEventListener("click", submitProblemAnswer);
+    document.getElementById("reveal-answer")?.addEventListener("click", () => { practiceState = "answer"; render(); });
+    document.getElementById("next-problem")?.addEventListener("click", nextProblem);
   }
 
   function renderStats() {
@@ -345,6 +480,7 @@ const html = `<!doctype html>
   }
 
   navIndex.addEventListener("click", () => { view = "index"; render(); });
+  navProblems.addEventListener("click", () => { view = "problemIndex"; render(); });
   navStats.addEventListener("click", () => { view = "stats"; render(); });
   render();
 })();

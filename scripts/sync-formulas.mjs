@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
-const csvPath = path.join(root, "fomula", "fomula.csv");
+const csvPath = path.join(root, "source", "fomula.csv");
 const publicFormulaDir = path.join(root, "public", "formulas");
 
 function parseCsvLine(line) {
@@ -33,18 +33,22 @@ function parseCsvLine(line) {
 const csv = await readFile(csvPath, "utf8");
 const lines = csv.trim().split(/\r?\n/);
 const headers = parseCsvLine(lines[0]);
-const formulas = lines.slice(1).map((line) => {
-  const row = parseCsvLine(line);
-  const record = Object.fromEntries(headers.map((header, index) => [header, row[index] ?? ""]));
-  return {
-    id: record.ID,
-    majorCategory: record["大分類"],
-    minorCategory: record["小分類"],
-    name: record["公式名"],
-    latex: record["数式（LaTeX）"],
-    importance: Number(record["重要度"] || 0)
-  };
-});
+const formulas = lines
+  .slice(1)
+  .map((line) => parseCsvLine(line))
+  .filter((row) => row.some((value) => value.trim()))
+  .map((row) => {
+    const record = Object.fromEntries(headers.map((header, index) => [header, row[index] ?? ""]));
+    return {
+      id: record.ID,
+      majorCategory: record["大分類"],
+      minorCategory: record["小分類"],
+      name: record["公式名"],
+      latex: record["数式（LaTeX）"],
+      description: record["説明"] || "",
+      importance: Number(record["重要度"] || 0)
+    };
+  });
 
 await mkdir(publicFormulaDir, { recursive: true });
 await writeFile(

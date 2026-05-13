@@ -6,7 +6,7 @@
     "dev": "npm run sync:data && next dev",
     "build": "npm run build:html",
     "build:next": "npm run sync:data && next build",
-    "build:html": "npm run sync:formulas && node scripts/build-static-html.mjs",
+    "build:html": "npm run sync:data && node scripts/build-static-html.mjs",
     "sync:data": "npm run sync:problems && npm run sync:formulas",
     "sync:problems": "node scripts/sync-problems.mjs",
     "sync:formulas": "node scripts/sync-formulas.mjs",

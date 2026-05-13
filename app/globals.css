@@ -225,6 +225,69 @@ p {
   bottom: 20px;
 }
 
+.category-count {
+  display: grid;
+  min-width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 8px;
+  background: #e5f5f4;
+  color: var(--teal);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.problem-card {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 136px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  text-align: left;
+  overflow: hidden;
+}
+
+.problem-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.problem-card-head b {
+  color: var(--teal);
+  font-size: 16px;
+}
+
+.problem-card-head small {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.problem-card-question,
+.problem-text {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.problem-card strong {
+  display: block;
+  font-size: clamp(16px, 4.7vw, 22px);
+  line-height: 1.45;
+  text-align: center;
+}
+
 .practice-view {
   display: grid;
   gap: 16px;
@@ -394,6 +457,40 @@ p {
 .formula-static {
   min-width: 0;
   max-width: 100%;
+}
+
+.formula-description {
+  width: min(100%, 330px);
+  margin: 18px auto 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.problem-text {
+  width: min(100%, 360px);
+  margin: 0 auto 18px;
+}
+
+.support-math {
+  display: block;
+  width: 100%;
+  margin: 0 auto 18px;
+  text-align: center;
+  font-size: clamp(17px, 5vw, 24px);
+  line-height: 1.45;
+}
+
+.answer-math {
+  display: block;
+  width: 100%;
+  margin: 0 auto 18px;
+  text-align: center;
+  font-size: clamp(22px, 7vw, 32px);
+  line-height: 1.55;
 }
 
 .latex-fragment {
@@ -631,7 +728,7 @@ p {
   bottom: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
   width: min(100%, 480px);
   height: 76px;
@@ -649,7 +746,7 @@ p {
   min-height: 72px;
   background: transparent;
   color: inherit;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 800;
 }
 

@@ -8,10 +8,23 @@ type Formula = {
   minorCategory: string;
   name: string;
   latex: string;
+  description?: string;
   importance: number;
 };
 
-type View = "index" | "list" | "practice" | "stats";
+type PracticeProblem = {
+  id: string;
+  formulaId: string;
+  majorCategory: string;
+  minorCategory: string;
+  formulaName: string;
+  formulaLatex: string;
+  question: string;
+  latex: string;
+  answer: string;
+};
+
+type View = "index" | "list" | "practice" | "problemIndex" | "problemList" | "problemPractice" | "stats";
 type PracticeState = "question" | "error" | "answer";
 
 type FormulaQuestion = {
@@ -273,19 +286,46 @@ function makeQuestion(formula: Formula, allFormulas: Formula[]) {
   };
 }
 
+function makeProblemQuestion(problem: PracticeProblem, allProblems: PracticeProblem[]) {
+  const targets = latexToAnswerTokens(problem.answer);
+  const distractors = allProblems
+    .flatMap((item) => latexToAnswerTokens(item.answer))
+    .filter((token) => isSafeChoiceLatex(token) && !targets.includes(token) && token.length <= 8)
+    .filter((token, index, array) => array.indexOf(token) === index)
+    .slice(0, 12);
+  const choices = [...targets, ...distractors]
+    .filter((choice, index, array) => array.indexOf(choice) === index)
+    .slice(0, 18);
+  const shuffled = choices
+    .map((choice, index) => ({ choice, sort: (choice.charCodeAt(0) * 19 + index * 29) % 101 }))
+    .sort((a, b) => a.sort - b.sort)
+    .map((item) => item.choice);
+
+  return {
+    targets,
+    choices: shuffled,
+    leftPrefix: ""
+  };
+}
+
 function mathText(latex: string) {
   return `\\(${latex}\\)`;
 }
 
 export default function Home() {
   const [formulas, setFormulas] = useState<Formula[]>([]);
+  const [problems, setProblems] = useState<PracticeProblem[]>([]);
   const [view, setView] = useState<View>("index");
   const [selectedMajor, setSelectedMajor] = useState<string | null>(null);
   const [selectedMinor, setSelectedMinor] = useState<string | null>(null);
+  const [selectedProblemMajor, setSelectedProblemMajor] = useState<string | null>(null);
+  const [selectedProblemMinor, setSelectedProblemMinor] = useState<string | null>(null);
   const [currentFormulaId, setCurrentFormulaId] = useState<string | null>(null);
+  const [currentProblemId, setCurrentProblemId] = useState<string | null>(null);
   const [practiceState, setPracticeState] = useState<PracticeState>("question");
   const [placedChoices, setPlacedChoices] = useState<string[]>([]);
   const [draggingChoice, setDraggingChoice] = useState<string | null>(null);
+  const [showProblemHint, setShowProblemHint] = useState(false);
   const [stats, setStats] = useState<ActivityStats>(emptyStats);
   const dropRef = useRef<HTMLDivElement | null>(null);
 
@@ -300,12 +340,24 @@ export default function Home() {
         setFormulas(data.formulas);
         setCurrentFormulaId(data.formulas[0]?.id ?? null);
       });
+    fetch(`${basePath}/problems/problems.json`)
+      .then((response) => {
+        if (!response.ok) throw new Error("problems.json を読み込めませんでした。");
+        return response.json();
+      })
+      .then((data: { problems: PracticeProblem[] }) => {
+        setProblems(data.problems);
+        setCurrentProblemId(data.problems[0]?.id ?? null);
+      })
+      .catch(() => {
+        setProblems([]);
+      });
   }, []);
 
   useEffect(() => {
     const mathJax = (window as typeof window & { MathJax?: { typesetPromise?: () => Promise<void> } }).MathJax;
     mathJax?.typesetPromise?.();
-  }, [formulas, view, selectedMajor, selectedMinor, currentFormulaId, practiceState, placedChoices]);
+  }, [formulas, problems, view, selectedMajor, selectedMinor, selectedProblemMajor, selectedProblemMinor, currentFormulaId, currentProblemId, practiceState, placedChoices, showProblemHint]);
 
   const currentFormula = useMemo(
     () => formulas.find((formula) => formula.id === currentFormulaId) || formulas[0],
@@ -315,6 +367,15 @@ export default function Home() {
     () => (currentFormula ? makeQuestion(currentFormula, formulas) : null),
     [currentFormula, formulas]
   );
+  const currentProblem = useMemo(
+    () => problems.find((problem) => problem.id === currentProblemId) || problems[0],
+    [currentProblemId, problems]
+  );
+  const problemQuestion = useMemo(
+    () => (currentProblem ? makeProblemQuestion(currentProblem, problems) : null),
+    [currentProblem, problems]
+  );
+  const activeQuestion = view === "problemPractice" ? problemQuestion : question;
   const majorGroups = useMemo(() => groupBy(formulas, (formula) => formula.majorCategory), [formulas]);
   const categoryRows = useMemo(
     () =>
@@ -336,6 +397,27 @@ export default function Home() {
       ),
     [formulas, selectedMajor, selectedMinor]
   );
+  const problemMajorGroups = useMemo(() => groupBy(problems, (problem) => problem.majorCategory), [problems]);
+  const problemCategoryRows = useMemo(
+    () =>
+      Object.entries(problemMajorGroups).flatMap(([major, majorProblems]) =>
+        Object.entries(groupBy(majorProblems, (problem) => problem.minorCategory)).map(([minor, minorProblems]) => ({
+          major,
+          minor,
+          problems: minorProblems
+        }))
+      ),
+    [problemMajorGroups]
+  );
+  const listedProblems = useMemo(
+    () =>
+      problems.filter(
+        (problem) =>
+          (!selectedProblemMajor || problem.majorCategory === selectedProblemMajor) &&
+          (!selectedProblemMinor || problem.minorCategory === selectedProblemMinor)
+      ),
+    [problems, selectedProblemMajor, selectedProblemMinor]
+  );
   const rememberedSet = useMemo(() => new Set(stats.rememberedIds), [stats.rememberedIds]);
   const completeRate = formulas.length ? Math.round((rememberedSet.size / formulas.length) * 100) : 0;
   const correctRate = stats.attempts ? Math.round((stats.correct / stats.attempts) * 100) : 0;
@@ -346,6 +428,12 @@ export default function Home() {
     setView("list");
   }
 
+  function openProblemList(major: string, minor: string | null = null) {
+    setSelectedProblemMajor(major);
+    setSelectedProblemMinor(minor);
+    setView("problemList");
+  }
+
   function startPractice(formula = currentFormula) {
     if (!formula) return;
     setCurrentFormulaId(formula.id);
@@ -354,12 +442,29 @@ export default function Home() {
     setView("practice");
   }
 
+  function startProblemPractice(problem = currentProblem) {
+    if (!problem) return;
+    setCurrentProblemId(problem.id);
+    setPlacedChoices([]);
+    setPracticeState("question");
+    setShowProblemHint(false);
+    setView("problemPractice");
+  }
+
   function backToFormulaList() {
     if (currentFormula) {
       setSelectedMajor(currentFormula.majorCategory);
       setSelectedMinor(currentFormula.minorCategory);
     }
     setView("list");
+  }
+
+  function backToProblemList() {
+    if (currentProblem) {
+      setSelectedProblemMajor(currentProblem.majorCategory);
+      setSelectedProblemMinor(currentProblem.minorCategory);
+    }
+    setView("problemList");
   }
 
   function updateStats(correct: boolean, formula: Formula) {
@@ -385,11 +490,34 @@ export default function Home() {
     setPracticeState(correct ? "answer" : "error");
   }
 
+  function submitProblemAnswer() {
+    if (!problemQuestion) return;
+    const correct =
+      problemQuestion.targets.length === placedChoices.length &&
+      problemQuestion.targets.every((target, index) => placedChoices[index] === target);
+    setPracticeState(correct ? "answer" : "error");
+  }
+
+  function revealProblemHint() {
+    setShowProblemHint(true);
+  }
+
+  function revealAnswer() {
+    setPracticeState("answer");
+  }
+
   function nextFormula() {
     if (!currentFormula) return;
     const currentIndex = formulas.findIndex((formula) => formula.id === currentFormula.id);
     const next = formulas[(currentIndex + 1) % formulas.length];
     startPractice(next);
+  }
+
+  function nextProblem() {
+    if (!currentProblem) return;
+    const currentIndex = problems.findIndex((problem) => problem.id === currentProblem.id);
+    const next = problems[(currentIndex + 1) % problems.length];
+    startProblemPractice(next);
   }
 
   function handleChoicePointerUp(choice: string, event: React.PointerEvent<HTMLButtonElement>) {
@@ -405,10 +533,10 @@ export default function Home() {
   }
 
   function placeChoice(choice: string) {
-    if (!question) return;
+    if (!activeQuestion) return;
     setPlacedChoices((current) => {
       const next = Array.from(
-        { length: question.targets.length },
+        { length: activeQuestion.targets.length },
         (_, index) => current[index] || ""
       );
       const emptyIndex = next.findIndex((value) => !value);
@@ -433,18 +561,18 @@ export default function Home() {
   }
 
   function revealAnswerHint() {
-    if (!question) return;
+    if (!activeQuestion) return;
     setPlacedChoices((current) => {
       const next = Array.from(
-        { length: question.targets.length },
+        { length: activeQuestion.targets.length },
         (_, index) => current[index] || ""
       );
       const blankIndexes = next
         .map((value, index) => (value ? -1 : index))
         .filter((index) => index >= 0);
-      const revealCount = Math.max(1, Math.ceil(question.targets.length * 0.3));
+      const revealCount = Math.max(1, Math.ceil(activeQuestion.targets.length * 0.3));
       blankIndexes.slice(0, revealCount).forEach((index) => {
-        next[index] = question.targets[index];
+        next[index] = activeQuestion.targets[index];
       });
       return next;
     });
@@ -499,6 +627,7 @@ export default function Home() {
               onSubmit={submitAnswer}
               onSkip={nextFormula}
               onNext={nextFormula}
+              onRevealAnswer={revealAnswer}
               onBack={backToFormulaList}
             />
           ) : null}
@@ -511,6 +640,44 @@ export default function Home() {
               completeRate={completeRate}
               correctRate={correctRate}
               onPractice={startPractice}
+            />
+          ) : null}
+
+          {view === "problemIndex" ? (
+            <ProblemIndexView
+              categoryRows={problemCategoryRows}
+              onOpenList={openProblemList}
+            />
+          ) : null}
+
+          {view === "problemList" ? (
+            <ProblemListView
+              title={selectedProblemMinor || selectedProblemMajor || "練習問題"}
+              problems={listedProblems}
+              onBack={() => setView("problemIndex")}
+              onPractice={startProblemPractice}
+            />
+          ) : null}
+
+          {view === "problemPractice" && currentProblem && problemQuestion ? (
+            <ProblemPracticeView
+              problem={currentProblem}
+              question={problemQuestion}
+              placedChoices={placedChoices}
+              draggingChoice={draggingChoice}
+              showHint={showProblemHint}
+              practiceState={practiceState}
+              dropRef={dropRef}
+              onChoicePointerDown={setDraggingChoice}
+              onChoicePointerUp={handleChoicePointerUp}
+              onPlaceChoice={placeChoice}
+              onClearChoice={clearPlacedChoice}
+              onRevealHint={revealProblemHint}
+              onSubmit={submitProblemAnswer}
+              onSkip={nextProblem}
+              onNext={nextProblem}
+              onRevealAnswer={revealAnswer}
+              onBack={backToProblemList}
             />
           ) : null}
         </div>
@@ -598,6 +765,79 @@ function FormulaListView({
   );
 }
 
+function ProblemIndexView({
+  categoryRows,
+  onOpenList
+}: {
+  categoryRows: Array<{ major: string; minor: string; problems: PracticeProblem[] }>;
+  onOpenList: (major: string, minor: string) => void;
+}) {
+  return (
+    <div className="category-list">
+      {categoryRows.map((row, index) => (
+        <button
+          key={`${row.major}-${row.minor}`}
+          type="button"
+          className={index === 0 ? "category-card featured" : "category-card"}
+          onClick={() => onOpenList(row.major, row.minor)}
+        >
+          <span className="category-icon">{categoryIcons[row.major] || "Q"}</span>
+          <span className="category-title">
+            <b>{row.major}</b>
+            <small>{row.minor}・{row.problems.length}問</small>
+          </span>
+          <span className="category-count">{row.problems.length}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ProblemListView({
+  title,
+  problems,
+  onBack,
+  onPractice
+}: {
+  title: string;
+  problems: PracticeProblem[];
+  onBack: () => void;
+  onPractice: (problem: PracticeProblem) => void;
+}) {
+  const minorGroups = groupBy(problems, (problem) => problem.minorCategory);
+
+  return (
+    <div className="list-view">
+      <div className="page-title-row">
+        <h2>{title}</h2>
+        <button type="button" className="back-button" onClick={onBack} aria-label="戻る">
+          ‹
+        </button>
+      </div>
+      {Object.entries(minorGroups).map(([minor, items]) => (
+        <section key={minor} className="minor-section">
+          <h3>{minor}</h3>
+          {items.map((problem) => (
+            <button
+              key={problem.id}
+              type="button"
+              className="problem-card"
+              onClick={() => onPractice(problem)}
+            >
+              <span className="problem-card-head">
+                <b>{problem.id}</b>
+                <small>{problem.formulaName}</small>
+              </span>
+              <span className="problem-card-question">{problem.question}</span>
+              <strong className="math">{mathText(problem.latex)}</strong>
+            </button>
+          ))}
+        </section>
+      ))}
+    </div>
+  );
+}
+
 function PracticeView({
   complete,
   total,
@@ -615,6 +855,7 @@ function PracticeView({
   onSubmit,
   onSkip,
   onNext,
+  onRevealAnswer,
   onBack
 }: {
   complete: number;
@@ -633,6 +874,7 @@ function PracticeView({
   onSubmit: () => void;
   onSkip: () => void;
   onNext: () => void;
+  onRevealAnswer: () => void;
   onBack: () => void;
 }) {
   const isResolved = practiceState !== "question";
@@ -669,6 +911,7 @@ function PracticeView({
           </div>
           <span className="answer-label">正しい公式</span>
           <strong className="math">{mathText(formula.latex)}</strong>
+          {formula.description ? <p className="formula-description">{formula.description}</p> : null}
         </section>
       ) : (
         <section className={practiceState === "error" ? "question-card wrong" : "question-card"}>
@@ -709,6 +952,7 @@ function PracticeView({
               </button>
             ))}
           </div>
+          {formula.description ? <p className="formula-description">{formula.description}</p> : null}
         </section>
       )}
 
@@ -719,6 +963,152 @@ function PracticeView({
           </button>
           <button type="button" className="large-button" onClick={onSubmit}>
             答える
+          </button>
+        </div>
+      ) : practiceState === "error" ? (
+        <div className="next-row">
+          <button type="button" className="large-button" onClick={onRevealAnswer}>
+            解答表示
+          </button>
+        </div>
+      ) : (
+        <div className="next-row">
+          <button type="button" className="large-button" onClick={onNext}>
+            次へ
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProblemPracticeView({
+  problem,
+  question,
+  placedChoices,
+  draggingChoice,
+  showHint,
+  practiceState,
+  dropRef,
+  onChoicePointerDown,
+  onChoicePointerUp,
+  onPlaceChoice,
+  onClearChoice,
+  onRevealHint,
+  onSubmit,
+  onSkip,
+  onNext,
+  onRevealAnswer,
+  onBack
+}: {
+  problem: PracticeProblem;
+  question: FormulaQuestion;
+  placedChoices: string[];
+  draggingChoice: string | null;
+  showHint: boolean;
+  practiceState: PracticeState;
+  dropRef: React.RefObject<HTMLDivElement>;
+  onChoicePointerDown: (choice: string) => void;
+  onChoicePointerUp: (choice: string, event: React.PointerEvent<HTMLButtonElement>) => void;
+  onPlaceChoice: (choice: string) => void;
+  onClearChoice: (index?: number) => void;
+  onRevealHint: () => void;
+  onSubmit: () => void;
+  onSkip: () => void;
+  onNext: () => void;
+  onRevealAnswer: () => void;
+  onBack: () => void;
+}) {
+  const isResolved = practiceState !== "question";
+
+  return (
+    <div className="practice-view">
+      <div className="practice-top-row">
+        <button type="button" className="practice-back-button" onClick={onBack}>
+          ‹ 練習問題
+        </button>
+      </div>
+      {practiceState === "question" ? (
+        <button type="button" className="hint-fill-button" onClick={onRevealHint}>
+          ヒント: 数式表示
+        </button>
+      ) : null}
+
+      {isResolved && practiceState === "answer" ? (
+        <section className="answer-reveal-card">
+          <h2>{problem.formulaName}</h2>
+          <p className="problem-text">{problem.question}</p>
+          <div className="submitted-answer">
+            <span>あなたの解答</span>
+            <div className="submitted-token-row">
+              {placedChoices.map((choice, index) => (
+                <b key={`${choice}-${index}`} className="math">
+                  {mathText(choice)}
+                </b>
+              ))}
+            </div>
+          </div>
+          <span className="answer-label">正しい解答</span>
+          <strong className="math answer-math">{mathText(problem.answer)}</strong>
+          <span className="answer-label">解法の式</span>
+          <strong className="math support-math">{mathText(problem.latex)}</strong>
+        </section>
+      ) : (
+        <section className={practiceState === "error" ? "question-card wrong" : "question-card"}>
+          {practiceState === "error" ? (
+            <button type="button" className="retry-icon" onClick={() => onClearChoice()}>
+              ↻
+            </button>
+          ) : null}
+          <h2>{problem.formulaName}</h2>
+          <p className="problem-text">{problem.question}</p>
+          {showHint ? <strong className="math support-math">{mathText(problem.latex)}</strong> : null}
+          <div className="choice-bank">
+            {question.choices.map((choice, index) => (
+              <button
+                key={`${choice}-${index}`}
+                type="button"
+                className={`token ${pastelClasses[index % pastelClasses.length]} ${draggingChoice === choice ? "dragging" : ""}`}
+                onClick={() => onPlaceChoice(choice)}
+                onPointerDown={(event) => {
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  onChoicePointerDown(choice);
+                }}
+                onPointerUp={(event) => onChoicePointerUp(choice, event)}
+              >
+                <span className="math">{mathText(choice)}</span>
+              </button>
+            ))}
+          </div>
+          <div ref={dropRef} className="formula-fill">
+            {question.targets.map((target, index) => (
+              <button
+                key={`${target}-${index}`}
+                type="button"
+                className={placedChoices[index] ? "drop-box filled" : "drop-box"}
+                onClick={() => onClearChoice(index)}
+                aria-label={`解答欄 ${index + 1}`}
+              >
+                {placedChoices[index] ? <span className="math">{mathText(placedChoices[index])}</span> : null}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {practiceState === "question" ? (
+        <div className="practice-actions">
+          <button type="button" className="large-button" onClick={onSkip}>
+            スキップ
+          </button>
+          <button type="button" className="large-button" onClick={onSubmit}>
+            答える
+          </button>
+        </div>
+      ) : practiceState === "error" ? (
+        <div className="next-row">
+          <button type="button" className="large-button" onClick={onRevealAnswer}>
+            解答表示
           </button>
         </div>
       ) : (
@@ -815,9 +1205,21 @@ function BottomNav({
 }) {
   return (
     <nav className="bottom-nav">
-      <button type="button" className={activeView === "index" || activeView === "list" ? "active" : ""} onClick={() => onChange("index")}>
+      <button
+        type="button"
+        className={activeView === "index" || activeView === "list" || activeView === "practice" ? "active" : ""}
+        onClick={() => onChange("index")}
+      >
         <span className="grid-icon">▦</span>
         数式
+      </button>
+      <button
+        type="button"
+        className={activeView === "problemIndex" || activeView === "problemList" || activeView === "problemPractice" ? "active" : ""}
+        onClick={() => onChange("problemIndex")}
+      >
+        <span className="grid-icon">□</span>
+        練習問題
       </button>
       <button type="button" className={activeView === "stats" ? "active" : ""} onClick={() => onChange("stats")}>
         <span className="bars-icon">▥</span>

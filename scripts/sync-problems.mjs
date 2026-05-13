@@ -1,57 +1,94 @@
-import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
-const outputDir = path.join(root, "output");
+const problemCsvPath = path.join(root, "source", "problem.csv");
+const formulaCsvPath = path.join(root, "source", "fomula.csv");
 const publicProblemsDir = path.join(root, "public", "problems");
 
-async function collectJsonFiles(dir) {
-  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
-  const files = [];
+function parseCsvLine(line) {
+  const values = [];
+  let current = "";
+  let inQuote = false;
 
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await collectJsonFiles(fullPath)));
-    } else if (entry.isFile() && entry.name.endsWith(".json")) {
-      files.push(fullPath);
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const next = line[index + 1];
+    if (char === '"' && next === '"') {
+      current += '"';
+      index += 1;
+    } else if (char === '"') {
+      inQuote = !inQuote;
+    } else if (char === "," && !inQuote) {
+      values.push(current);
+      current = "";
+    } else {
+      current += char;
     }
   }
 
-  return files.sort((a, b) => a.localeCompare(b));
+  values.push(current);
+  return values;
 }
 
-function safePublicName(filePath) {
-  const relative = path.relative(outputDir, filePath);
-  return relative.replace(/\\/g, "/").replace(/\//g, "__");
+function parseCsv(csv) {
+  const lines = csv.trim().split(/\r?\n/);
+  const headers = parseCsvLine(lines[0]);
+  return lines
+    .slice(1)
+    .map((line) => parseCsvLine(line))
+    .filter((row) => row.some((value) => value.trim()))
+    .map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index] ?? ""])));
 }
 
-await rm(publicProblemsDir, { recursive: true, force: true });
-await mkdir(publicProblemsDir, { recursive: true });
-
-const jsonFiles = await collectJsonFiles(outputDir);
-const manifest = [];
-
-for (const filePath of jsonFiles) {
-  const raw = await readFile(filePath, "utf8");
-  const metadata = JSON.parse(raw);
-  const publicName = safePublicName(filePath);
-  await writeFile(path.join(publicProblemsDir, publicName), `${JSON.stringify(metadata, null, 2)}\n`);
-  manifest.push({
-    id: metadata.id,
-    title: metadata.source?.problem_number
-      ? `問題 ${metadata.source.problem_number}`
-      : metadata.question?.slice(0, 28) || metadata.id,
-    file: publicName,
-    subject: metadata.subject,
-    unit: metadata.unit,
-    difficulty: metadata.difficulty
-  });
-}
-
-await writeFile(
-  path.join(publicProblemsDir, "manifest.json"),
-  `${JSON.stringify({ problems: manifest }, null, 2)}\n`
+const formulas = parseCsv(await readFile(formulaCsvPath, "utf8"));
+const formulaById = new Map(
+  formulas.map((formula) => [
+    formula.ID,
+    {
+      majorCategory: formula["大分類"],
+      minorCategory: formula["小分類"],
+      formulaLatex: formula["数式（LaTeX）"]
+    }
+  ])
 );
 
-console.log(`Synced ${manifest.length} problem JSON file(s) to public/problems.`);
+const problems = parseCsv(await readFile(problemCsvPath, "utf8")).map((record) => {
+  const formula = formulaById.get(record["対象ID"]) || {};
+  return {
+    id: record["問題ID"],
+    formulaId: record["対象ID"],
+    majorCategory: formula.majorCategory || "未分類",
+    minorCategory: formula.minorCategory || "未分類",
+    formulaName: record["公式名"],
+    formulaLatex: formula.formulaLatex || record["数式（LaTeX）"],
+    question: record["問題"],
+    latex: record["数式（LaTeX）"],
+    answer: record["解答"]
+  };
+});
+
+await mkdir(publicProblemsDir, { recursive: true });
+await writeFile(
+  path.join(publicProblemsDir, "problems.json"),
+  `${JSON.stringify({ problems }, null, 2)}\n`
+);
+await writeFile(
+  path.join(publicProblemsDir, "manifest.json"),
+  `${JSON.stringify(
+    {
+      problems: problems.map((problem) => ({
+        id: problem.id,
+        title: problem.question,
+        majorCategory: problem.majorCategory,
+        minorCategory: problem.minorCategory,
+        formulaId: problem.formulaId,
+        formulaName: problem.formulaName
+      }))
+    },
+    null,
+    2
+  )}\n`
+);
+
+console.log(`Synced ${problems.length} problem(s) to public/problems.`);
