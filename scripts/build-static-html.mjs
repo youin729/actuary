@@ -118,6 +118,15 @@ const html = `<!doctype html>
     return "\\\\(" + latex + "\\\\)";
   }
 
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function typeset() {
     if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise();
   }
