@@ -38,6 +38,10 @@ type ActivityStats = {
   correct: number;
   rememberedIds: string[];
   history: Array<{ id: string; correct: boolean; answeredAt: string }>;
+  problemAttempts: number;
+  problemCorrect: number;
+  solvedProblemIds: string[];
+  problemHistory: Array<{ id: string; correct: boolean; answeredAt: string }>;
 };
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
@@ -59,7 +63,11 @@ const emptyStats: ActivityStats = {
   attempts: 0,
   correct: 0,
   rememberedIds: [],
-  history: []
+  history: [],
+  problemAttempts: 0,
+  problemCorrect: 0,
+  solvedProblemIds: [],
+  problemHistory: []
 };
 
 function groupBy<T>(items: T[], keyGetter: (item: T) => string) {
@@ -81,7 +89,11 @@ function loadStats(): ActivityStats {
       attempts: parsed.attempts || 0,
       correct: parsed.correct || 0,
       rememberedIds: Array.isArray(parsed.rememberedIds) ? parsed.rememberedIds : [],
-      history: Array.isArray(parsed.history) ? parsed.history : []
+      history: Array.isArray(parsed.history) ? parsed.history : [],
+      problemAttempts: parsed.problemAttempts || 0,
+      problemCorrect: parsed.problemCorrect || 0,
+      solvedProblemIds: Array.isArray(parsed.solvedProblemIds) ? parsed.solvedProblemIds : [],
+      problemHistory: Array.isArray(parsed.problemHistory) ? parsed.problemHistory : []
     };
   } catch {
     return emptyStats;
@@ -419,8 +431,11 @@ export default function Home() {
     [problems, selectedProblemMajor, selectedProblemMinor]
   );
   const rememberedSet = useMemo(() => new Set(stats.rememberedIds), [stats.rememberedIds]);
+  const solvedProblemSet = useMemo(() => new Set(stats.solvedProblemIds), [stats.solvedProblemIds]);
   const completeRate = formulas.length ? Math.round((rememberedSet.size / formulas.length) * 100) : 0;
   const correctRate = stats.attempts ? Math.round((stats.correct / stats.attempts) * 100) : 0;
+  const problemCompleteRate = problems.length ? Math.round((solvedProblemSet.size / problems.length) * 100) : 0;
+  const problemCorrectRate = stats.problemAttempts ? Math.round((stats.problemCorrect / stats.problemAttempts) * 100) : 0;
 
   function openList(major: string, minor: string | null = null) {
     setSelectedMajor(major);
@@ -472,10 +487,26 @@ export default function Home() {
       ? Array.from(new Set([...stats.rememberedIds, formula.id]))
       : stats.rememberedIds;
     const nextStats = {
+      ...stats,
       attempts: stats.attempts + 1,
       correct: stats.correct + (correct ? 1 : 0),
       rememberedIds: nextRemembered,
       history: [{ id: formula.id, correct, answeredAt: new Date().toISOString() }, ...stats.history].slice(0, 50)
+    };
+    setStats(nextStats);
+    saveStats(nextStats);
+  }
+
+  function updateProblemStats(correct: boolean, problem: PracticeProblem) {
+    const nextSolvedProblemIds = correct
+      ? Array.from(new Set([...stats.solvedProblemIds, problem.id]))
+      : stats.solvedProblemIds;
+    const nextStats = {
+      ...stats,
+      problemAttempts: stats.problemAttempts + 1,
+      problemCorrect: stats.problemCorrect + (correct ? 1 : 0),
+      solvedProblemIds: nextSolvedProblemIds,
+      problemHistory: [{ id: problem.id, correct, answeredAt: new Date().toISOString() }, ...stats.problemHistory].slice(0, 50)
     };
     setStats(nextStats);
     saveStats(nextStats);
@@ -491,10 +522,11 @@ export default function Home() {
   }
 
   function submitProblemAnswer() {
-    if (!problemQuestion) return;
+    if (!currentProblem || !problemQuestion) return;
     const correct =
       problemQuestion.targets.length === placedChoices.length &&
       problemQuestion.targets.every((target, index) => placedChoices[index] === target);
+    updateProblemStats(correct, currentProblem);
     setPracticeState(correct ? "answer" : "error");
   }
 
@@ -635,10 +667,14 @@ export default function Home() {
           {view === "stats" ? (
             <StatsView
               formulas={formulas}
+              problems={problems}
               rememberedSet={rememberedSet}
+              solvedProblemSet={solvedProblemSet}
               stats={stats}
               completeRate={completeRate}
               correctRate={correctRate}
+              problemCompleteRate={problemCompleteRate}
+              problemCorrectRate={problemCorrectRate}
               onPractice={startPractice}
             />
           ) : null}
@@ -654,6 +690,7 @@ export default function Home() {
             <ProblemListView
               title={selectedProblemMinor || selectedProblemMajor || "練習問題"}
               problems={listedProblems}
+              solvedProblemSet={solvedProblemSet}
               onBack={() => setView("problemIndex")}
               onPractice={startProblemPractice}
             />
@@ -796,11 +833,13 @@ function ProblemIndexView({
 function ProblemListView({
   title,
   problems,
+  solvedProblemSet,
   onBack,
   onPractice
 }: {
   title: string;
   problems: PracticeProblem[];
+  solvedProblemSet: Set<string>;
   onBack: () => void;
   onPractice: (problem: PracticeProblem) => void;
 }) {
@@ -830,6 +869,7 @@ function ProblemListView({
               </span>
               <span className="problem-card-question">{problem.question}</span>
               <strong className="math">{mathText(problem.latex)}</strong>
+              <span className={solvedProblemSet.has(problem.id) ? "check done" : "check"}>✓</span>
             </button>
           ))}
         </section>
@@ -1124,20 +1164,29 @@ function ProblemPracticeView({
 
 function StatsView({
   formulas,
+  problems,
   rememberedSet,
+  solvedProblemSet,
   stats,
   completeRate,
   correctRate,
+  problemCompleteRate,
+  problemCorrectRate,
   onPractice
 }: {
   formulas: Formula[];
+  problems: PracticeProblem[];
   rememberedSet: Set<string>;
+  solvedProblemSet: Set<string>;
   stats: ActivityStats;
   completeRate: number;
   correctRate: number;
+  problemCompleteRate: number;
+  problemCorrectRate: number;
   onPractice: (formula: Formula) => void;
 }) {
   const byMajor = groupBy(formulas, (formula) => formula.majorCategory);
+  const problemsByMajor = groupBy(problems, (problem) => problem.majorCategory);
 
   return (
     <div className="stats-view">
@@ -1161,6 +1210,33 @@ function StatsView({
           <span>正解率</span>
           <b>{correctRate}%</b>
         </div>
+        <div className="stats-line">
+          <span>正解した練習問題</span>
+          <b>{solvedProblemSet.size}/{problems.length}</b>
+        </div>
+        <div className="stats-line">
+          <span>練習問題 回答総数</span>
+          <b>{stats.problemAttempts}</b>
+        </div>
+        <div className="stats-line">
+          <span>練習問題 正解総数</span>
+          <b>{stats.problemCorrect}</b>
+        </div>
+        <div className="stats-line">
+          <span>練習問題 正解率</span>
+          <b>{problemCorrectRate}%</b>
+        </div>
+      </section>
+
+      <section className="major-stats-card">
+        <div className="major-stats-head">
+          <span className="category-icon">Q</span>
+          <b>練習問題</b>
+          <strong>{solvedProblemSet.size}/{problems.length}</strong>
+        </div>
+        <div className="mini-track">
+          <span style={{ width: `${problemCompleteRate}%` }}>{problemCompleteRate}%</span>
+        </div>
       </section>
 
       {Object.entries(byMajor).map(([major, items]) => {
@@ -1171,6 +1247,23 @@ function StatsView({
             <div className="major-stats-head">
               <span className="category-icon">{categoryIcons[major] || "f(x)"}</span>
               <b>{major}</b>
+              <strong>{done}/{items.length}</strong>
+            </div>
+            <div className="mini-track">
+              <span style={{ width: `${percent}%` }}>{percent}%</span>
+            </div>
+          </section>
+        );
+      })}
+
+      {Object.entries(problemsByMajor).map(([major, items]) => {
+        const done = items.filter((problem) => solvedProblemSet.has(problem.id)).length;
+        const percent = items.length ? Math.round((done / items.length) * 100) : 0;
+        return (
+          <section key={`problem-${major}`} className="major-stats-card">
+            <div className="major-stats-head">
+              <span className="category-icon">{categoryIcons[major] || "Q"}</span>
+              <b>練習問題: {major}</b>
               <strong>{done}/{items.length}</strong>
             </div>
             <div className="mini-track">

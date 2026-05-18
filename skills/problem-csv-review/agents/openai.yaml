@@ -1,0 +1,4 @@
+interface:
+  display_name: "Problem CSV Review"
+  short_description: "Review and improve practice-problem CSV wording and validation."
+  default_prompt: "Review source/problem.csv for standalone Japanese wording, formula linkage, and generated problem-data consistency."

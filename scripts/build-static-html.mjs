@@ -97,16 +97,20 @@ const html = `<!doctype html>
   function loadStats() {
     try {
       const raw = sessionStorage.getItem(statsKey);
-      if (!raw) return { attempts: 0, correct: 0, rememberedIds: [], history: [] };
+      if (!raw) return { attempts: 0, correct: 0, rememberedIds: [], history: [], problemAttempts: 0, problemCorrect: 0, solvedProblemIds: [], problemHistory: [] };
       const parsed = JSON.parse(raw);
       return {
         attempts: parsed.attempts || 0,
         correct: parsed.correct || 0,
         rememberedIds: Array.isArray(parsed.rememberedIds) ? parsed.rememberedIds : [],
-        history: Array.isArray(parsed.history) ? parsed.history : []
+        history: Array.isArray(parsed.history) ? parsed.history : [],
+        problemAttempts: parsed.problemAttempts || 0,
+        problemCorrect: parsed.problemCorrect || 0,
+        solvedProblemIds: Array.isArray(parsed.solvedProblemIds) ? parsed.solvedProblemIds : [],
+        problemHistory: Array.isArray(parsed.problemHistory) ? parsed.problemHistory : []
       };
     } catch {
-      return { attempts: 0, correct: 0, rememberedIds: [], history: [] };
+      return { attempts: 0, correct: 0, rememberedIds: [], history: [], problemAttempts: 0, problemCorrect: 0, solvedProblemIds: [], problemHistory: [] };
     }
   }
 
@@ -411,9 +415,10 @@ const html = `<!doctype html>
   function renderProblemList() {
     const visible = problems.filter((problem) => (!selectedProblemMajor || problem.majorCategory === selectedProblemMajor) && (!selectedProblemMinor || problem.minorCategory === selectedProblemMinor));
     const groups = groupBy(visible, (problem) => problem.minorCategory);
+    const solved = new Set(loadStats().solvedProblemIds);
     app.innerHTML = '<div class="list-view"><div class="page-title-row"><h2>' + escapeHtml(selectedProblemMinor || selectedProblemMajor || "練習問題") + '</h2><button type="button" class="back-button" id="back-problem-index">‹</button></div>' +
       Object.entries(groups).map(([minor, items]) => '<section class="minor-section"><h3>' + escapeHtml(minor) + '</h3>' + items.map((problem) =>
-        '<button type="button" class="problem-card" data-id="' + escapeHtml(problem.id) + '"><span class="problem-card-head"><b>' + escapeHtml(problem.id) + '</b><small>' + escapeHtml(problem.formulaName) + '</small></span><span class="problem-card-question">' + escapeHtml(problem.question) + '</span><strong class="math">' + mathText(problem.latex) + '</strong></button>'
+        '<button type="button" class="problem-card" data-id="' + escapeHtml(problem.id) + '"><span class="problem-card-head"><b>' + escapeHtml(problem.id) + '</b><small>' + escapeHtml(problem.formulaName) + '</small></span><span class="problem-card-question">' + escapeHtml(problem.question) + '</span><strong class="math">' + mathText(problem.latex) + '</strong><span class="' + (solved.has(problem.id) ? 'check done' : 'check') + '">✓</span></button>'
       ).join("") + '</section>').join("") + '</div>';
     document.getElementById("back-problem-index").addEventListener("click", () => { view = "problemIndex"; render(); });
     app.querySelectorAll(".problem-card").forEach((button) => {
@@ -433,6 +438,15 @@ const html = `<!doctype html>
 
   function submitProblemAnswer() {
     const correct = problemQuestion.targets.length === placedChoices.length && problemQuestion.targets.every((target, index) => placedChoices[index] === target);
+    const stats = loadStats();
+    const solvedProblemIds = correct ? Array.from(new Set([...stats.solvedProblemIds, currentProblem.id])) : stats.solvedProblemIds;
+    saveStats({
+      ...stats,
+      problemAttempts: stats.problemAttempts + 1,
+      problemCorrect: stats.problemCorrect + (correct ? 1 : 0),
+      solvedProblemIds,
+      problemHistory: [{ id: currentProblem.id, correct, answeredAt: new Date().toISOString() }, ...stats.problemHistory].slice(0, 50)
+    });
     practiceState = correct ? "answer" : "error";
     render();
   }
@@ -479,11 +493,17 @@ const html = `<!doctype html>
   function renderStats() {
     const stats = loadStats();
     const remembered = new Set(stats.rememberedIds);
+    const solvedProblems = new Set(stats.solvedProblemIds);
     const completeRate = formulas.length ? Math.round((remembered.size / formulas.length) * 100) : 0;
     const correctRate = stats.attempts ? Math.round((stats.correct / stats.attempts) * 100) : 0;
+    const problemCompleteRate = problems.length ? Math.round((solvedProblems.size / problems.length) * 100) : 0;
+    const problemCorrectRate = stats.problemAttempts ? Math.round((stats.problemCorrect / stats.problemAttempts) * 100) : 0;
     const byMajor = groupBy(formulas, (formula) => formula.majorCategory);
-    app.innerHTML = '<div class="stats-view"><section class="stats-summary"><div class="ring" style="background:conic-gradient(#0a817a ' + (completeRate * 3.6) + 'deg, #e8f7f5 0deg)"><span>' + completeRate + '%</span></div><div class="stats-line"><span>暗記した数式</span><b>' + remembered.size + '/' + formulas.length + '</b></div><div class="stats-line"><span>回答総数</span><b>' + stats.attempts + '</b></div><div class="stats-line"><span>正解総数</span><b>' + stats.correct + '</b></div><div class="stats-line"><span>正解率</span><b>' + correctRate + '%</b></div></section>' +
+    const problemsByMajor = groupBy(problems, (problem) => problem.majorCategory);
+    app.innerHTML = '<div class="stats-view"><section class="stats-summary"><div class="ring" style="background:conic-gradient(#0a817a ' + (completeRate * 3.6) + 'deg, #e8f7f5 0deg)"><span>' + completeRate + '%</span></div><div class="stats-line"><span>暗記した数式</span><b>' + remembered.size + '/' + formulas.length + '</b></div><div class="stats-line"><span>回答総数</span><b>' + stats.attempts + '</b></div><div class="stats-line"><span>正解総数</span><b>' + stats.correct + '</b></div><div class="stats-line"><span>正解率</span><b>' + correctRate + '%</b></div><div class="stats-line"><span>正解した練習問題</span><b>' + solvedProblems.size + '/' + problems.length + '</b></div><div class="stats-line"><span>練習問題 回答総数</span><b>' + stats.problemAttempts + '</b></div><div class="stats-line"><span>練習問題 正解総数</span><b>' + stats.problemCorrect + '</b></div><div class="stats-line"><span>練習問題 正解率</span><b>' + problemCorrectRate + '%</b></div></section>' +
+      '<section class="major-stats-card"><div class="major-stats-head"><span class="category-icon">Q</span><b>練習問題</b><strong>' + solvedProblems.size + '/' + problems.length + '</strong></div><div class="mini-track"><span style="width:' + problemCompleteRate + '%">' + problemCompleteRate + '%</span></div></section>' +
       Object.entries(byMajor).map(([major, items]) => { const done = items.filter((formula) => remembered.has(formula.id)).length; const percent = items.length ? Math.round((done / items.length) * 100) : 0; return '<section class="major-stats-card"><div class="major-stats-head"><span class="category-icon">' + (categoryIcons[major] || 'f(x)') + '</span><b>' + major + '</b><strong>' + done + '/' + items.length + '</strong></div><div class="mini-track"><span style="width:' + percent + '%">' + percent + '%</span></div></section>'; }).join("") +
+      Object.entries(problemsByMajor).map(([major, items]) => { const done = items.filter((problem) => solvedProblems.has(problem.id)).length; const percent = items.length ? Math.round((done / items.length) * 100) : 0; return '<section class="major-stats-card"><div class="major-stats-head"><span class="category-icon">' + (categoryIcons[major] || 'Q') + '</span><b>練習問題: ' + escapeHtml(major) + '</b><strong>' + done + '/' + items.length + '</strong></div><div class="mini-track"><span style="width:' + percent + '%">' + percent + '%</span></div></section>'; }).join("") +
       '<section class="formula-progress-list">' + formulas.slice(0, 12).map((formula) => '<button type="button" data-id="' + formula.id + '"><span class="math">' + mathText(formula.latex) + '</span><span class="dot-row"><i class="' + (remembered.has(formula.id) ? 'active' : '') + '"></i><i></i><i></i></span></button>').join("") + '</section></div>';
     app.querySelectorAll(".formula-progress-list button").forEach((button) => button.addEventListener("click", () => startPractice(formulas.find((formula) => formula.id === button.dataset.id))));
   }
